@@ -1,86 +1,55 @@
 import { backendRequest } from "../../api/index.js";
 import { SearchableDropdown } from "../SearchableDropdown.js";
-import "../../style/accounts/AddStockForm.css";
+import { createFormLayout, field, formActions, setStatus } from "../ui.js";
 
-const MODEL_COL   = 1;
-const COLOR_COL   = 2;
+const MODEL_COL = 1;
+const COLOR_COL = 2;
 const COUNTER_COL = 3;
 
 const AddStockForm = (() => {
 
     async function mount(container, session) {
-        let modelDropdown   = null;
-        let colorDropdown   = null;
+        let modelDropdown = null;
+        let colorDropdown = null;
         let counterDropdown = null;
 
-        container.innerHTML = `
-            <form id="add-stock-form" novalidate>
-                <h2>Add Stock Form</h2>
+        container.innerHTML = createFormLayout({
+            id: "add-stock-form",
+            title: "Add Stock Form",
+            body: `
+                ${field("Chassis Number", '<input id="as-chassis" class="ui-input" type="text" placeholder="Enter chassis number" />', { required: true })}
+                ${field("Engine Number", '<input id="as-engine" class="ui-input" type="text" placeholder="Enter engine number" />', { required: true })}
+                ${field("Model", '<div id="as-model-container"></div>', { required: true })}
+                ${field("Color", '<div id="as-color-container"></div>', { required: true })}
+                ${field("Current Counter", '<div id="as-counter-container"></div>', { required: true })}
+                ${field("Key Number", '<input id="as-key" class="ui-input" type="text" placeholder="Enter key number" />')}
+                ${formActions("as-submit", "as-status")}
+            `
+        });
 
-                <div>
-                    <label>Chassis Number *</label>
-                    <input id="as-chassis" type="text" placeholder="Enter chassis number" />
-                </div>
+        const chassisInput = container.querySelector("#as-chassis");
+        const engineInput = container.querySelector("#as-engine");
+        const keyInput = container.querySelector("#as-key");
+        const submitButton = container.querySelector("#as-submit");
+        const statusEl = container.querySelector("#as-status");
+        const form = container.querySelector("#add-stock-form");
 
-                <div>
-                    <label>Engine Number *</label>
-                    <input id="as-engine" type="text" placeholder="Enter engine number" />
-                </div>
-
-                <div>
-                    <label>Model *</label>
-                    <div id="as-model-container"></div>
-                </div>
-
-                <div>
-                    <label>Color *</label>
-                    <div id="as-color-container"></div>
-                </div>
-
-                <div>
-                    <label>Current Counter *</label>
-                    <div id="as-counter-container"></div>
-                </div>
-
-                <div>
-                    <label>Key Number (Optional)</label>
-                    <input id="as-key" type="text" placeholder="Enter key number" />
-                </div>
-
-                <div>
-                    <button id="as-submit" type="submit">Submit</button>
-                    <span id="as-status"></span>
-                </div>
-            </form>
-        `;
-
-        const chassisInput    = container.querySelector("#as-chassis");
-        const engineInput     = container.querySelector("#as-engine");
-        const modelContainer  = container.querySelector("#as-model-container");
-        const colorContainer  = container.querySelector("#as-color-container");
-        const counterContainer = container.querySelector("#as-counter-container");
-        const keyInput        = container.querySelector("#as-key");
-        const submitButton    = container.querySelector("#as-submit");
-        const statusEl        = container.querySelector("#as-status");
-        const form            = container.querySelector("#add-stock-form");
-
-        modelDropdown = SearchableDropdown.mount(modelContainer, {
-            options:     [],
+        modelDropdown = SearchableDropdown.mount(container.querySelector("#as-model-container"), {
+            options: [],
             placeholder: "Select model..."
         });
 
-        colorDropdown = SearchableDropdown.mount(colorContainer, {
-            options:     [],
+        colorDropdown = SearchableDropdown.mount(container.querySelector("#as-color-container"), {
+            options: [],
             placeholder: "Select color..."
         });
 
-        counterDropdown = SearchableDropdown.mount(counterContainer, {
-            options:     [],
+        counterDropdown = SearchableDropdown.mount(container.querySelector("#as-counter-container"), {
+            options: [],
             placeholder: "Select counter..."
         });
 
-        statusEl.textContent = "Fetching dropdown values...";
-        statusEl.className   = "info";
+        setStatus(statusEl, "Fetching dropdown values...", "info", true);
 
         try {
             const [modelRes, colorRes, counterRes] = await Promise.all([
@@ -93,57 +62,43 @@ const AddStockForm = (() => {
             if (colorRes.status === 1) colorDropdown.setOptions(colorRes.data);
             if (counterRes.status === 1) counterDropdown.setOptions(counterRes.data);
 
-            statusEl.textContent = "";
-            statusEl.className   = "";
+            setStatus(statusEl);
         } catch (err) {
-            statusEl.textContent = "Error fetching dropdown values.";
-            statusEl.className   = "error";
+            setStatus(statusEl, "Error fetching dropdown values.", "error");
             console.error("[getDropdown]", err);
         }
 
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
-            statusEl.textContent = "";
+            setStatus(statusEl);
 
             const chassis = chassisInput.value.trim();
-            const engine  = engineInput.value.trim();
-            const model   = modelDropdown.getValue();
-            const color   = colorDropdown.getValue();
+            const engine = engineInput.value.trim();
+            const model = modelDropdown.getValue();
+            const color = colorDropdown.getValue();
             const counter = counterDropdown.getValue();
-            const key     = keyInput.value.trim();
+            const key = keyInput.value.trim();
 
             if (!chassis || !engine || !model || !color || !counter) {
-                statusEl.textContent = "All mandatory fields (*) are required.";
-                statusEl.className   = "error";
+                setStatus(statusEl, "All mandatory fields (*) are required.", "error");
                 return;
             }
 
-            const payload = {
-                chassis,
-                engine,
-                model,
-                color,
-                counter,
-                key
-            };
+            const payload = { chassis, engine, model, color, counter, key };
 
             submitButton.disabled = true;
-            statusEl.textContent  = "Submitting...";
-            statusEl.className    = "info";
+            setStatus(statusEl, "Submitting...", "info", true);
 
             try {
                 const res = await backendRequest("addStockForm", payload);
                 if (res.status === 1) {
-                    statusEl.textContent = "Stock added successfully. Refreshing...";
-                    statusEl.className   = "success";
+                    setStatus(statusEl, "Stock added successfully. Refreshing...", "success");
                     setTimeout(() => window.location.reload(), 1500);
                 } else {
-                    statusEl.textContent = res.message || "Submission failed.";
-                    statusEl.className   = "error";
+                    setStatus(statusEl, res.message || "Submission failed.", "error");
                 }
             } catch (err) {
-                statusEl.textContent = "Network error. Please try again.";
-                statusEl.className   = "error";
+                setStatus(statusEl, "Network error. Please try again.", "error");
                 console.error("[addStockForm]", err);
             } finally {
                 submitButton.disabled = false;

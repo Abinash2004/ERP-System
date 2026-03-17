@@ -1,6 +1,6 @@
 import { backendRequest } from "../../api/index.js";
 import { SearchableDropdown } from "../SearchableDropdown.js";
-import "../../style/accounts/AddSaleForm.css";
+import { createFormLayout, createOption, field, formActions, setStatus } from "../ui.js";
 
 const CHASSIS_COL = 10;
 const COUNTER_COL = 3;
@@ -15,81 +15,27 @@ const AddSaleForm = (() => {
         let cashFinanceDropdown = null;
         let salesPersonDropdown = null;
 
-        container.innerHTML = `
-            <form id="add-sale-form" novalidate>
-                <h2>Add Sale Form</h2>
-
-                <div>
-                    <label>Chassis Number *</label>
-                    <div id="as-chassis-container"></div>
-                </div>
-
-                <div>
-                    <label>Model</label>
-                    <input id="as-model" type="text" readonly placeholder="Auto-filled" />
-                </div>
-
-                <div>
-                    <label>Color</label>
-                    <input id="as-color" type="text" readonly placeholder="Auto-filled" />
-                </div>
-
-                <div>
-                    <label>Sale Counter *</label>
-                    <div id="as-counter-container"></div>
-                </div>
-
-                <div>
-                    <label>Stock Status *</label>
-                    <select id="as-stock-status">
-                        <option value="B2C">B2C</option>
-                        <option value="RETURN">RETURN</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label>Sale Date *</label>
-                    <input id="as-date" type="date" />
-                </div>
-
-                <div>
-                    <label>Customer Name *</label>
-                    <input id="as-customer-name" type="text" placeholder="Enter customer name" />
-                </div>
-
+        container.innerHTML = createFormLayout({
+            id: "add-sale-form",
+            title: "Add Sale Form",
+            body: `
+                ${field("Chassis Number", '<div id="as-chassis-container"></div>', { required: true })}
+                ${field("Model", '<input id="as-model" class="ui-input ui-readonly" type="text" readonly placeholder="Auto-filled" />')}
+                ${field("Color", '<input id="as-color" class="ui-input ui-readonly" type="text" readonly placeholder="Auto-filled" />')}
+                ${field("Sale Counter", '<div id="as-counter-container"></div>', { required: true })}
+                ${field("Stock Status", `<select id="as-stock-status" class="ui-select">${createOption("B2C", "B2C", true)}${createOption("RETURN", "RETURN")}</select>`, { required: true })}
+                ${field("Sale Date", '<input id="as-date" class="ui-input" type="date" />', { required: true })}
+                ${field("Customer Name", '<input id="as-customer-name" class="ui-input" type="text" placeholder="Enter customer name" />', { required: true })}
                 <div id="as-b2c-fields" class="b2c-only b2c-visible">
-                    <div>
-                        <label>Mobile Number *</label>
-                        <input id="as-mobile" type="tel" maxlength="10" placeholder="10-digit number" oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
-                    </div>
-
-                    <div>
-                        <label>Alternate Mobile Number (Optional)</label>
-                        <input id="as-alt-mobile" type="tel" maxlength="10" placeholder="10-digit number" oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
-                    </div>
-
-                    <div>
-                        <label>Cash / Finance *</label>
-                        <div id="as-cash-finance-container"></div>
-                    </div>
-
-                    <div>
-                        <label>Financer *</label>
-                        <input id="as-financer" type="text" placeholder="Enter financer name" />
-                    </div>
+                    ${field("Mobile Number", '<input id="as-mobile" class="ui-input" type="tel" maxlength="10" placeholder="10-digit number" oninput="this.value = this.value.replace(/[^0-9]/g, \"\")" />', { required: true })}
+                    ${field("Alternate Mobile Number", '<input id="as-alt-mobile" class="ui-input" type="tel" maxlength="10" placeholder="10-digit number" oninput="this.value = this.value.replace(/[^0-9]/g, \"\")" />')}
+                    ${field("Cash / Finance", '<div id="as-cash-finance-container"></div>', { required: true })}
+                    ${field("Financer", '<input id="as-financer" class="ui-input" type="text" placeholder="Enter financer name" />', { required: true })}
                 </div>
-
-                <div>
-                    <label>Sales Person *</label>
-                    <div id="as-sales-person-container"></div>
-                </div>
-
-                <div>
-                    <button id="as-submit" type="submit">Submit</button>
-                    <span id="as-status"></span>
-                </div>
-            </form>
-        `;
+                ${field("Sales Person", '<div id="as-sales-person-container"></div>', { required: true })}
+                ${formActions("as-submit", "as-status")}
+            `
+        });
 
         const modelInput = container.querySelector("#as-model");
         const colorInput = container.querySelector("#as-color");
@@ -113,29 +59,26 @@ const AddSaleForm = (() => {
                     colorInput.value = "";
                     return;
                 }
-                
+
                 modelInput.value = "Fetching...";
                 colorInput.value = "Fetching...";
-                statusEl.textContent = "Fetching chassis details...";
-                statusEl.className = "info";
-                
+                setStatus(statusEl, "Fetching chassis details...", "info", true);
+
                 try {
                     const res = await backendRequest("getChassis", val);
                     if (res.status === 1 && res.data) {
                         modelInput.value = res.data.model || "N/A";
                         colorInput.value = res.data.color || "N/A";
-                        statusEl.textContent = "";
+                        setStatus(statusEl);
                     } else {
                         modelInput.value = "Not Found";
                         colorInput.value = "Not Found";
-                        statusEl.textContent = "Chassis details not found.";
-                        statusEl.className = "error";
+                        setStatus(statusEl, "Chassis details not found.", "error");
                     }
                 } catch (err) {
                     modelInput.value = "Error";
                     colorInput.value = "Error";
-                    statusEl.textContent = "Error fetching chassis details.";
-                    statusEl.className = "error";
+                    setStatus(statusEl, "Error fetching chassis details.", "error");
                 }
             }
         });
@@ -155,16 +98,18 @@ const AddSaleForm = (() => {
             placeholder: "Select sales person..."
         });
 
-        statusSelect.addEventListener("change", () => {
+        function syncB2cFields() {
             if (statusSelect.value === "B2C") {
                 b2cFields.classList.add("b2c-visible");
             } else {
                 b2cFields.classList.remove("b2c-visible");
             }
-        });
+        }
 
-        statusEl.textContent = "Fetching dropdown values...";
-        statusEl.className = "info";
+        statusSelect.addEventListener("change", syncB2cFields);
+        syncB2cFields();
+
+        setStatus(statusEl, "Fetching dropdown values...", "info", true);
 
         try {
             const [chassisRes, counterRes, cashRes, personRes] = await Promise.all([
@@ -179,11 +124,9 @@ const AddSaleForm = (() => {
             if (cashRes.status === 1) cashFinanceDropdown.setOptions(cashRes.data);
             if (personRes.status === 1) salesPersonDropdown.setOptions(personRes.data);
 
-            statusEl.textContent = "";
-            statusEl.className = "";
+            setStatus(statusEl);
         } catch (err) {
-            statusEl.textContent = "Error fetching dropdown values.";
-            statusEl.className = "error";
+            setStatus(statusEl, "Error fetching dropdown values.", "error");
         }
 
         form.addEventListener("submit", async (e) => {
@@ -196,8 +139,7 @@ const AddSaleForm = (() => {
             const salesPerson = salesPersonDropdown.getValue();
 
             if (!chassis || !saleCounter || !stockStatus || !saleDate || !customerName || !salesPerson) {
-                statusEl.textContent = "All mandatory fields (*) are required.";
-                statusEl.className = "error";
+                setStatus(statusEl, "All mandatory fields (*) are required.", "error");
                 return;
             }
 
@@ -208,19 +150,16 @@ const AddSaleForm = (() => {
 
             if (stockStatus === "B2C") {
                 if (!mobile || !cashOrFinance || !financer) {
-                    statusEl.textContent = "B2C mandatory fields are required.";
-                    statusEl.className = "error";
+                    setStatus(statusEl, "B2C mandatory fields are required.", "error");
                     return;
                 }
                 const phoneRegex = /^[0-9]{10}$/;
                 if (!phoneRegex.test(mobile)) {
-                    statusEl.textContent = "Valid 10-digit mobile number required.";
-                    statusEl.className = "error";
+                    setStatus(statusEl, "Valid 10-digit mobile number required.", "error");
                     return;
                 }
                 if (altMobile && !phoneRegex.test(altMobile)) {
-                    statusEl.textContent = "Valid 10-digit alternate mobile required.";
-                    statusEl.className = "error";
+                    setStatus(statusEl, "Valid 10-digit alternate mobile required.", "error");
                     return;
                 }
             }
@@ -239,22 +178,18 @@ const AddSaleForm = (() => {
             };
 
             submitButton.disabled = true;
-            statusEl.textContent = "Submitting Sale...";
-            statusEl.className = "info";
+            setStatus(statusEl, "Submitting Sale...", "info", true);
 
             try {
                 const res = await backendRequest("addSaleForm", payload);
                 if (res.status === 1) {
-                    statusEl.textContent = "Sale added successfully. Refreshing...";
-                    statusEl.className = "success";
+                    setStatus(statusEl, "Sale added successfully. Refreshing...", "success");
                     setTimeout(() => window.location.reload(), 1500);
                 } else {
-                    statusEl.textContent = res.message || "Submission failed.";
-                    statusEl.className = "error";
+                    setStatus(statusEl, res.message || "Submission failed.", "error");
                 }
             } catch (err) {
-                statusEl.textContent = "Network error. Try again.";
-                statusEl.className = "error";
+                setStatus(statusEl, "Network error. Try again.", "error");
             } finally {
                 submitButton.disabled = false;
             }

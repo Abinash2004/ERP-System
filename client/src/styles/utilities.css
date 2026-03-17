@@ -1,0 +1,33 @@
+.u-hidden {
+    display: none !important;
+}
+
+.u-stack-sm {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.u-stack-md {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.u-flex {
+    display: flex;
+}
+
+.u-flex-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.u-w-full {
+    width: 100%;
+}
+
+.u-muted {
+    color: var(--text-muted);
+}

@@ -1,8 +1,8 @@
 import { backendRequest } from "../../api/index.js";
 import { SearchableDropdown } from "../SearchableDropdown.js";
-import "../../style/showroom/DailyTransactionForm.css";
+import { createFormLayout, field, formActions, setStatus } from "../ui.js";
 
-const CASH_IN_COL  = 7;
+const CASH_IN_COL = 7;
 const CASH_OUT_COL = 8;
 
 const ACTION_OPTIONS = ["CASH IN", "CASH OUT"];
@@ -11,66 +11,44 @@ const DailyTransactionForm = (() => {
 
     async function mount(container, session) {
         let openingBalance = 0;
-        let currentAction  = "";
         const leisureCache = {};
-        let actionDropdown  = null;
+        let actionDropdown = null;
         let leisureDropdown = null;
 
-        container.innerHTML = `
-            <form id="daily-transaction-form" novalidate>
-                <h2>Daily Transaction</h2>
-
-                <div>
-                    <label>Opening Balance</label><br>
-                    <input id="dt-opening-balance" type="text" readonly value="Loading..." />
-                </div>
-
-                <div>
-                    <label>Action</label><br>
-                    <div id="dt-action-container"></div>
-                </div>
-
-                <div>
-                    <label>Cash Leisure</label><br>
-                    <div id="dt-leisure-container"></div>
-                </div>
-
-                <div>
-                    <label>Amount</label><br>
-                    <input id="dt-amount" type="number" min="0" placeholder="Enter amount" />
-                </div>
-
-                <div>
-                    <label>Remark</label><br>
-                    <textarea id="dt-remark" placeholder="Enter remark" rows="3"></textarea>
-                </div>
-
-                <div>
-                    <button id="dt-submit" type="submit">Submit</button>
-                    <span id="dt-status"></span>
-                </div>
-            </form>
-        `;
+        container.innerHTML = createFormLayout({
+            id: "daily-transaction-form",
+            title: "Daily Transaction",
+            body: `
+                ${field("Opening Balance", '<input id="dt-opening-balance" class="ui-input ui-readonly" type="text" readonly value="Loading..." />', { full: true })}
+                ${field("Action", '<div id="dt-action-container"></div>', { required: true })}
+                ${field("Cash Leisure", '<div id="dt-leisure-container"></div>', { required: true })}
+                ${field("Amount", '<input id="dt-amount" class="ui-input" type="number" min="0" placeholder="Enter amount" />', { required: true })}
+                ${field("Remark", '<textarea id="dt-remark" class="ui-textarea" placeholder="Enter remark" rows="4"></textarea>', { required: true, full: true })}
+                ${formActions("dt-submit", "dt-status")}
+            `
+        });
 
         const openingBalanceInput = container.querySelector("#dt-opening-balance");
-        const actionContainer     = container.querySelector("#dt-action-container");
-        const leisureContainer    = container.querySelector("#dt-leisure-container");
-        const amountInput         = container.querySelector("#dt-amount");
-        const remarkInput         = container.querySelector("#dt-remark");
-        const submitButton        = container.querySelector("#dt-submit");
-        const statusEl            = container.querySelector("#dt-status");
-        const form                = container.querySelector("#daily-transaction-form");
+        const actionContainer = container.querySelector("#dt-action-container");
+        const leisureContainer = container.querySelector("#dt-leisure-container");
+        const amountInput = container.querySelector("#dt-amount");
+        const remarkInput = container.querySelector("#dt-remark");
+        const submitButton = container.querySelector("#dt-submit");
+        const statusEl = container.querySelector("#dt-status");
+        const form = container.querySelector("#daily-transaction-form");
 
         actionDropdown = SearchableDropdown.mount(actionContainer, {
-            options:     ACTION_OPTIONS,
+            options: ACTION_OPTIONS,
             placeholder: "Select action...",
-            onChange:    handleActionChange
+            onChange: handleActionChange
         });
 
         leisureDropdown = SearchableDropdown.mount(leisureContainer, {
-            options:     [],
+            options: [],
             placeholder: "Select leisure..."
         });
+
+        setStatus(statusEl, "Fetching balances and dropdowns...", "info", true);
 
         const [balanceRes, cashInRes, cashOutRes] = await Promise.allSettled([
             backendRequest("getOpeningBalance", { branch: session.branch }),
@@ -98,70 +76,60 @@ const DailyTransactionForm = (() => {
             console.error("[getDropdown col 8]", cashOutRes.reason ?? cashOutRes.value?.message);
         }
 
+        setStatus(statusEl, balanceRes.status === "fulfilled" || cashInRes.status === "fulfilled" || cashOutRes.status === "fulfilled" ? "" : "Unable to load form data.", balanceRes.status === "fulfilled" || cashInRes.status === "fulfilled" || cashOutRes.status === "fulfilled" ? "" : "error");
+
         function handleActionChange(action) {
-            currentAction = action;
             const col = action === "CASH IN" ? CASH_IN_COL : CASH_OUT_COL;
             leisureDropdown.setOptions(leisureCache[col] ?? []);
         }
 
-
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
-            statusEl.textContent = "";
+            setStatus(statusEl);
 
-            const action      = actionDropdown.getValue();
+            const action = actionDropdown.getValue();
             const cashLeisure = leisureDropdown.getValue();
-            const amount      = amountInput.value.trim();
-            const remark      = remarkInput.value.trim();
+            const amount = amountInput.value.trim();
+            const remark = remarkInput.value.trim();
 
             if (!action || !cashLeisure || !amount || !remark) {
-                statusEl.textContent = "All fields are required.";
+                setStatus(statusEl, "All fields are required.", "error");
                 return;
             }
 
             const numericAmount = parseFloat(amount);
             if (isNaN(numericAmount) || numericAmount < 0) {
-                statusEl.textContent = "Amount must be a valid non-negative number.";
+                setStatus(statusEl, "Amount must be a valid non-negative number.", "error");
                 return;
             }
 
             const payload = {
-                location:       session.branch,
-                openingBalance: openingBalance,
-                cashIn:         action === "CASH IN"  ? numericAmount : 0,
-                cashOut:        action === "CASH OUT" ? numericAmount : 0,
-                cashLeisure:    cashLeisure,
-                remark:         remark
+                location: session.branch,
+                openingBalance,
+                cashIn: action === "CASH IN" ? numericAmount : 0,
+                cashOut: action === "CASH OUT" ? numericAmount : 0,
+                cashLeisure,
+                remark
             };
 
             submitButton.disabled = true;
-            statusEl.textContent  = "Submitting...";
+            setStatus(statusEl, "Submitting...", "info", true);
 
             try {
                 const res = await backendRequest("dailyTransactionForm", payload);
                 if (res.status === 1) {
-                    statusEl.textContent = "Submitted successfully. Refreshing...";
+                    setStatus(statusEl, "Submitted successfully. Refreshing...", "success");
                     setTimeout(() => window.location.reload(), 1500);
                 } else {
-                    statusEl.textContent = res.message || "Submission failed.";
+                    setStatus(statusEl, res.message || "Submission failed.", "error");
                 }
             } catch (err) {
-                statusEl.textContent = "Network error. Please try again.";
+                setStatus(statusEl, "Network error. Please try again.", "error");
                 console.error("[dailyTransaction]", err);
             } finally {
                 submitButton.disabled = false;
             }
         });
-
-        function resetForm() {
-            actionDropdown.setValue("");
-            leisureDropdown.setOptions([]);
-            amountInput.value = "";
-            remarkInput.value = "";
-            currentAction     = "";
-            openingBalance    = 0;
-            openingBalanceInput.value = "0";
-        }
     }
 
     return { mount };

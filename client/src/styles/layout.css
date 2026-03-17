@@ -1,0 +1,126 @@
+.app-shell {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+    min-height: 100vh;
+}
+
+.app-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    padding: 28px 18px 24px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+}
+
+.app-sidebar__header {
+    display: flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0 6px;
+}
+
+.app-sidebar__title {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+.app-sidebar__footer {
+    margin-top: auto;
+    padding-top: var(--space-4a);
+    border-top: 1px solid var(--border);
+}
+
+.app-content {
+    min-width: 0;
+    padding: 28px 32px;
+    overflow: auto;
+}
+
+.app-content > * {
+    width: min(100%, 980px);
+    margin: 0 auto;
+}
+
+.login-shell {
+    display: grid;
+    min-height: 100vh;
+    place-items: center;
+    padding: 32px 24px;
+}
+
+.ui-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    width: min(100%, 980px);
+    margin: 0 auto;
+    padding: 30px 32px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.ui-card--auth {
+    width: min(100%, 440px);
+}
+
+.ui-card-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.ui-form {
+    width: 100%;
+}
+
+.ui-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 24px;
+    row-gap: 20px;
+}
+
+.ui-form-grid--single {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.ui-form--compact {
+    width: min(100%, 440px);
+}
+
+.ui-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-bottom: var(--space-5);
+}
+
+@media (max-width: 960px) {
+    .app-shell {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .app-sidebar {
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+        padding: 20px 16px;
+    }
+
+    .app-content {
+        padding: 20px 16px;
+    }
+
+    .ui-card {
+        padding: 24px 20px;
+    }
+
+    .ui-form-grid {
+        grid-template-columns: minmax(0, 1fr);
+        row-gap: 16px;
+    }
+}

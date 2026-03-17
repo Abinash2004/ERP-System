@@ -1,40 +1,32 @@
 import { backendRequest } from "../../api/index.js";
 import { UpdateFollowUpForm } from "./UpdateFollowUpForm.js";
-import "../../style/showroom/FollowUpList.css";
+import { panelHeader, setStatus } from "../ui.js";
 
 const LIMIT = 10;
 
-// 0-indexed into the full row array returned by backend
 const COL = {
-    VISIT_DATE:     1,
-    CUSTOMER_NAME:  3,
-    MOBILE_NUMBER:  4,
-    STATUS:         8,
+    VISIT_DATE: 1,
+    CUSTOMER_NAME: 3,
+    MOBILE_NUMBER: 4,
+    STATUS: 8,
     FIRST_FEEDBACK: 11,
-    LAST_FEEDBACK:  13
+    LAST_FEEDBACK: 13
 };
 
 const FollowUpList = (() => {
 
     async function mount(container, session) {
-        let page    = 1;
+        let page = 1;
         let hasMore = true;
         let currentStatus = "ALL";
 
         function showList() {
             container.innerHTML = `
-                <div id="follow-up-list-wrapper">
-                    <div id="follow-up-header">
-                        <h2>Follow Up Customer List</h2>
-                        <select id="fup-status-filter">
-                            <option value="ALL">All</option>
-                            <option value="OPEN">Open</option>
-                            <option value="CLOSE">Close</option>
-                            <option value="PURCHASED">Purchased</option>
-                        </select>
-                    </div>
-                    <div id="follow-up-table-container">
-                        <table id="follow-up-table">
+                <section class="ui-table-card">
+                    ${panelHeader("Follow Up Customer List", '<select id="fup-status-filter" class="ui-select"><option value="ALL">All</option><option value="OPEN">Open</option><option value="CLOSE">Close</option><option value="PURCHASED">Purchased</option></select>')}
+                    <div id="fup-status" class="ui-status" role="status" aria-live="polite"></div>
+                    <div class="ui-table-scroll">
+                        <table class="ui-table" id="follow-up-table">
                             <thead>
                                 <tr>
                                     <th>Visit Date</th>
@@ -47,24 +39,26 @@ const FollowUpList = (() => {
                             <tbody id="follow-up-tbody"></tbody>
                         </table>
                     </div>
-                    <div id="follow-up-pagination">
-                        <button id="fup-prev" disabled>&larr;</button>
-                        <span id="fup-page-info">Page ${page}</span>
-                        <button id="fup-next">&rarr;</button>
+                    <div class="ui-pagination">
+                        <button id="fup-prev" class="ui-button ui-button--ghost" type="button" disabled>&larr;</button>
+                        <span id="fup-page-info" class="u-muted">Page ${page}</span>
+                        <button id="fup-next" class="ui-button ui-button--ghost" type="button">&rarr;</button>
                     </div>
-                </div>
+                </section>
             `;
 
-            const tbody         = container.querySelector("#follow-up-tbody");
-            const prevBtn       = container.querySelector("#fup-prev");
-            const nextBtn       = container.querySelector("#fup-next");
-            const pageInfo      = container.querySelector("#fup-page-info");
-            const statusFilter  = container.querySelector("#fup-status-filter");
+            const tbody = container.querySelector("#follow-up-tbody");
+            const prevBtn = container.querySelector("#fup-prev");
+            const nextBtn = container.querySelector("#fup-next");
+            const pageInfo = container.querySelector("#fup-page-info");
+            const statusFilter = container.querySelector("#fup-status-filter");
+            const statusEl = container.querySelector("#fup-status");
 
             async function loadPage() {
                 prevBtn.disabled = true;
                 nextBtn.disabled = true;
-                tbody.innerHTML  = "";
+                tbody.innerHTML = "";
+                setStatus(statusEl, "Loading follow up records...", "info", true);
 
                 try {
                     const res = await backendRequest("getFollowUpList", {
@@ -74,30 +68,30 @@ const FollowUpList = (() => {
                         status: currentStatus
                     });
 
-                    if (res.status !== 1) return;
+                    if (res.status !== 1) {
+                        setStatus(statusEl, res.message || "Unable to load records.", "error");
+                        return;
+                    }
 
                     const rows = res.data;
                     hasMore = rows.length === LIMIT;
 
                     if (rows.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="5">No records found.</td></tr>`;
+                        tbody.innerHTML = '<tr><td colspan="5">No records found.</td></tr>';
                     } else {
                         rows.forEach(row => {
                             const tr = document.createElement("tr");
-                            tr.className = "fup-row";
+                            tr.className = "ui-table-row";
                             const rawDate = row[COL.VISIT_DATE];
                             const visitDate = rawDate ? new Date(rawDate).toLocaleDateString() : "";
                             const hasFirst = !!row[COL.FIRST_FEEDBACK];
-                            const hasLast  = !!row[COL.LAST_FEEDBACK];
-                            
-                            let feedbackStatus = "First Feedback Pending";
-                            let badgeClass = "";
+                            const hasLast = !!row[COL.LAST_FEEDBACK];
+
+                            let feedbackStatus = '<span class="ui-badge">First Feedback Pending</span>';
                             if (hasFirst && hasLast) {
-                                feedbackStatus = "Both Feedback Given";
-                                badgeClass = " done";
+                                feedbackStatus = '<span class="ui-badge is-success">Both Feedback Given</span>';
                             } else if (hasFirst && !hasLast) {
-                                feedbackStatus = "Last Feedback Pending";
-                                badgeClass = " partial";
+                                feedbackStatus = '<span class="ui-badge is-partial">Last Feedback Pending</span>';
                             }
 
                             const followUpStatus = row[COL.STATUS] || "OPEN";
@@ -114,11 +108,13 @@ const FollowUpList = (() => {
                         });
                     }
 
+                    setStatus(statusEl);
                     pageInfo.textContent = `Page ${page}`;
                     prevBtn.disabled = page === 1;
                     nextBtn.disabled = !hasMore;
                 } catch (err) {
                     console.error("[getFollowUpList]", err);
+                    setStatus(statusEl, "Unable to load records.", "error");
                     prevBtn.disabled = page === 1;
                     nextBtn.disabled = !hasMore;
                 }
@@ -131,8 +127,18 @@ const FollowUpList = (() => {
                 loadPage();
             });
 
-            prevBtn.addEventListener("click", () => { if (page > 1) { page--; loadPage(); } });
-            nextBtn.addEventListener("click", () => { if (hasMore)  { page++; loadPage(); } });
+            prevBtn.addEventListener("click", () => {
+                if (page > 1) {
+                    page--;
+                    loadPage();
+                }
+            });
+            nextBtn.addEventListener("click", () => {
+                if (hasMore) {
+                    page++;
+                    loadPage();
+                }
+            });
 
             loadPage();
         }

@@ -2,9 +2,7 @@ import { clearSession } from "../services/session.js";
 import { DailyTransactionForm } from "../components/showroom/DailyTransactionForm.js";
 import { NewWalkInForm } from "../components/showroom/NewWalkInForm.js";
 import { FollowUpList } from "../components/showroom/FollowUpList.js";
-import "../style/showroom/ShowroomPage.css";
-import "../style/showroom/Sidebar.css";
-import "../style/showroom/FormContainer.css";
+import { renderSidebarLayout } from "../components/ui.js";
 
 const FORMS = [
     { label: "Daily Transaction", component: DailyTransactionForm },
@@ -13,28 +11,23 @@ const FORMS = [
 ];
 
 export function renderShowroom(session) {
-    document.getElementById("app").innerHTML = `
-        <div id="showroom-page">
-            <div id="showroom-sidebar">
-                <h3>Forms</h3>
-                <ul id="form-list"></ul>
-                <hr>
-                <button id="logout">Logout</button>
-            </div>
-            <div id="showroom-content">
-                <p>Select a form from the sidebar.</p>
-            </div>
-        </div>
-    `;
+    document.getElementById("app").innerHTML = renderSidebarLayout({
+        pageId: "showroom-page",
+        sidebarTitle: "Showroom",
+        listId: "form-list",
+        contentId: "showroom-content",
+        emptyText: "Select a form from the sidebar."
+    });
 
-    const formList    = document.getElementById("form-list");
+    const formList = document.getElementById("form-list");
     const contentArea = document.getElementById("showroom-content");
-    let activeIndex   = null;
+    let activeIndex = null;
 
     FORMS.forEach(({ label, component }, index) => {
         const li = document.createElement("li");
-        li.textContent   = label;
+        li.textContent = label;
         li.dataset.index = index;
+        li.className = "app-nav__item";
 
         li.addEventListener("click", () => {
             if (activeIndex === index) return;

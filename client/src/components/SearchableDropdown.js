@@ -1,21 +1,19 @@
-import "../style/showroom/SearchableDropdown.css";
-
 const SearchableDropdown = (() => {
 
     function mount(container, { options = [], placeholder = "Select...", onChange = null } = {}) {
-        let currentOptions   = [...options];
-        let selectedValue    = "";
-        let isOpen           = false;
+        let currentOptions = [...options];
+        let selectedValue = "";
+        let isOpen = false;
         let highlightedIndex = -1;
 
         const wrapper = document.createElement("div");
         wrapper.className = "sd-wrapper";
 
         const input = document.createElement("input");
-        input.type         = "text";
-        input.placeholder  = placeholder;
+        input.type = "text";
+        input.placeholder = placeholder;
         input.autocomplete = "off";
-        input.className    = "sd-input";
+        input.className = "sd-input";
 
         const list = document.createElement("ul");
         list.className = "sd-list";
@@ -50,7 +48,7 @@ const SearchableDropdown = (() => {
             if (filtered.length === 0) {
                 const li = document.createElement("li");
                 li.textContent = "No results";
-                li.className   = "sd-no-results";
+                li.className = "sd-no-results";
                 list.appendChild(li);
                 return;
             }
@@ -79,7 +77,7 @@ const SearchableDropdown = (() => {
 
         function closeList() {
             if (!isOpen) return;
-            isOpen           = false;
+            isOpen = false;
             highlightedIndex = -1;
             list.classList.remove("sd-open");
             input.value = selectedValue;
@@ -87,20 +85,20 @@ const SearchableDropdown = (() => {
 
         function select(value) {
             selectedValue = value;
-            input.value   = value;
+            input.value = value;
             closeList();
             if (typeof onChange === "function") onChange(value);
         }
 
-        input.addEventListener("focus", () => openList());
-        input.addEventListener("click", () => openList());
+        input.addEventListener("focus", openList);
+        input.addEventListener("click", openList);
 
         input.addEventListener("input", () => {
             if (!isOpen) openList();
             else renderList(input.value);
         });
 
-        input.addEventListener("blur", () => closeList());
+        input.addEventListener("blur", closeList);
 
         input.addEventListener("keydown", (e) => {
             if (e.key === "ArrowLeft" || e.key === "ArrowRight") return;
@@ -146,12 +144,12 @@ const SearchableDropdown = (() => {
             },
             setValue(value) {
                 selectedValue = value;
-                input.value   = value;
+                input.value = value;
             },
             setOptions(newOptions) {
-                currentOptions   = [...newOptions];
-                selectedValue    = "";
-                input.value      = "";
+                currentOptions = [...newOptions];
+                selectedValue = "";
+                input.value = "";
                 highlightedIndex = -1;
                 if (isOpen) renderList();
             }

@@ -1,6 +1,6 @@
 import { backendRequest } from "../../api/index.js";
 import { SearchableDropdown } from "../SearchableDropdown.js";
-import "../../style/accounts/AddRegistrationForm.css";
+import { createFormLayout, field, formActions, setStatus } from "../ui.js";
 
 const CHASSIS_COL = 13;
 
@@ -9,26 +9,15 @@ const AddRegistrationForm = (() => {
     async function mount(container, session) {
         let chassisDropdown = null;
 
-        container.innerHTML = `
-            <form id="add-registration-form" novalidate>
-                <h2>Add Registration Form</h2>
-
-                <div>
-                    <label>Chassis Number *</label>
-                    <div id="ar-chassis-container"></div>
-                </div>
-
-                <div>
-                    <label>Registration Number *</label>
-                    <input id="ar-registration-number" type="text" placeholder="Enter registration number" />
-                </div>
-
-                <div>
-                    <button id="ar-submit" type="submit">Submit</button>
-                    <span id="ar-status"></span>
-                </div>
-            </form>
-        `;
+        container.innerHTML = createFormLayout({
+            id: "add-registration-form",
+            title: "Add Registration Form",
+            body: `
+                ${field("Chassis Number", '<div id="ar-chassis-container"></div>', { required: true })}
+                ${field("Registration Number", '<input id="ar-registration-number" class="ui-input" type="text" placeholder="Enter registration number" />', { required: true })}
+                ${formActions("ar-submit", "ar-status")}
+            `
+        });
 
         const registrationInput = container.querySelector("#ar-registration-number");
         const submitButton = container.querySelector("#ar-submit");
@@ -40,21 +29,17 @@ const AddRegistrationForm = (() => {
             placeholder: "Select chassis number..."
         });
 
-        // Fetch dropdown values
-        statusEl.textContent = "Fetching chassis numbers...";
-        statusEl.className = "info";
+        setStatus(statusEl, "Fetching chassis numbers...", "info", true);
         try {
             const res = await backendRequest("getDropdown", CHASSIS_COL);
             if (res.status === 1) {
                 chassisDropdown.setOptions(res.data);
-                statusEl.textContent = "";
+                setStatus(statusEl);
             } else {
-                statusEl.textContent = "Failed to load chassis numbers.";
-                statusEl.className = "error";
+                setStatus(statusEl, "Failed to load chassis numbers.", "error");
             }
         } catch (err) {
-            statusEl.textContent = "Error fetching dropdown.";
-            statusEl.className = "error";
+            setStatus(statusEl, "Error fetching dropdown.", "error");
         }
 
         form.addEventListener("submit", async (e) => {
@@ -63,14 +48,12 @@ const AddRegistrationForm = (() => {
             const registrationNumber = registrationInput.value.trim();
 
             if (!chassis || !registrationNumber) {
-                statusEl.textContent = "Both fields are required.";
-                statusEl.className = "error";
+                setStatus(statusEl, "Both fields are required.", "error");
                 return;
             }
 
             submitButton.disabled = true;
-            statusEl.textContent = "Submitting registration...";
-            statusEl.className = "info";
+            setStatus(statusEl, "Submitting registration...", "info", true);
 
             try {
                 const res = await backendRequest("addRegistrationForm", {
@@ -79,17 +62,14 @@ const AddRegistrationForm = (() => {
                 });
 
                 if (res.status === 1) {
-                    statusEl.textContent = "Registration added successfully. Refreshing...";
-                    statusEl.className = "success";
+                    setStatus(statusEl, "Registration added successfully. Refreshing...", "success");
                     setTimeout(() => window.location.reload(), 1500);
                 } else {
-                    statusEl.textContent = res.message || "Failed to add registration.";
-                    statusEl.className = "error";
+                    setStatus(statusEl, res.message || "Failed to add registration.", "error");
                     submitButton.disabled = false;
                 }
             } catch (err) {
-                statusEl.textContent = "Network error. Please try again.";
-                statusEl.className = "error";
+                setStatus(statusEl, "Network error. Please try again.", "error");
                 submitButton.disabled = false;
             }
         });

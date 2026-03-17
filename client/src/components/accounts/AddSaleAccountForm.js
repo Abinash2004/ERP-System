@@ -1,6 +1,6 @@
 import { backendRequest } from "../../api/index.js";
 import { SearchableDropdown } from "../SearchableDropdown.js";
-import "../../style/accounts/AddSaleAccountForm.css";
+import { createFormLayout, createOption, field, formActions, setStatus } from "../ui.js";
 
 const CHASSIS_COL = 12;
 const ADVANCER_COL = 9;
@@ -11,107 +11,34 @@ const AddSaleAccountForm = (() => {
         let chassisDropdown = null;
         let advancerDropdown = null;
 
-        container.innerHTML = `
-            <form id="add-sale-account-form" novalidate>
-                <h2>Add Sale Account Form</h2>
-
-                <div>
-                    <label>Chassis Number *</label>
-                    <div id="asa-chassis-container"></div>
-                </div>
-
-                <div>
-                    <label>Customer Name</label>
-                    <input id="asa-customer-name" type="text" readonly placeholder="Auto-fetched on chassis selection" />
-                </div>
-
-                <div>
-                    <label>Price Tag Number *</label>
-                    <input id="asa-price-tag" type="text" placeholder="Enter price tag number" />
-                </div>
-
-                <div>
-                    <label>Total Down Payment *</label>
-                    <input id="asa-total-dp" type="number" min="0" placeholder="0" />
-                </div>
-
-                <div>
-                    <label>Any Advance? *</label>
-                    <select id="asa-any-advance">
-                        <option value="NO">NO</option>
-                        <option value="YES">YES</option>
-                    </select>
-                </div>
-
+        container.innerHTML = createFormLayout({
+            id: "add-sale-account-form",
+            title: "Add Sale Account Form",
+            body: `
+                ${field("Chassis Number", '<div id="asa-chassis-container"></div>', { required: true })}
+                ${field("Customer Name", '<input id="asa-customer-name" class="ui-input ui-readonly" type="text" readonly placeholder="Auto-fetched on chassis selection" />')}
+                ${field("Price Tag Number", '<input id="asa-price-tag" class="ui-input" type="text" placeholder="Enter price tag number" />', { required: true })}
+                ${field("Total Down Payment", '<input id="asa-total-dp" class="ui-input" type="number" min="0" placeholder="0" />', { required: true })}
+                ${field("Any Advance?", `<select id="asa-any-advance" class="ui-select">${createOption("NO", "NO", true)}${createOption("YES", "YES")}</select>`, { required: true })}
                 <div id="asa-advance-section" class="conditional-section">
-                    <div>
-                        <label>Advancer Name *</label>
-                        <div id="asa-advancer-container"></div>
-                    </div>
-                    <div>
-                        <label>Advance Amount</label>
-                        <input id="asa-advance-amount" type="number" readonly placeholder="0" />
-                    </div>
+                    ${field("Advancer Name", '<div id="asa-advancer-container"></div>', { required: true })}
+                    ${field("Advance Amount", '<input id="asa-advance-amount" class="ui-input ui-readonly" type="number" readonly placeholder="0" />')}
                 </div>
-
-                <div>
-                    <label>Any Exchange? *</label>
-                    <select id="asa-any-exchange">
-                        <option value="NO">NO</option>
-                        <option value="YES">YES</option>
-                    </select>
-                </div>
-
+                ${field("Any Exchange?", `<select id="asa-any-exchange" class="ui-select">${createOption("NO", "NO", true)}${createOption("YES", "YES")}</select>`, { required: true })}
                 <div id="asa-exchange-section" class="conditional-section">
-                    <div>
-                        <label>Exchange Model *</label>
-                        <input id="asa-ex-model" type="text" placeholder="Enter exchange model" />
-                    </div>
-                    <div>
-                        <label>Exchange Register Number *</label>
-                        <input id="asa-ex-reg" type="text" placeholder="Enter registration number" />
-                    </div>
-                    <div>
-                        <label>Customer Exchange Value *</label>
-                        <input id="asa-ex-cust-val" type="number" min="0" placeholder="0" />
-                    </div>
-                    <div>
-                        <label>Exchange Dealer *</label>
-                        <input id="asa-ex-dealer" type="text" placeholder="Enter dealer name" />
-                    </div>
-                    <div>
-                        <label>Dealer Exchange Value *</label>
-                        <input id="asa-ex-deal-val" type="number" min="0" placeholder="0" />
-                    </div>
+                    ${field("Exchange Model", '<input id="asa-ex-model" class="ui-input" type="text" placeholder="Enter exchange model" />', { required: true })}
+                    ${field("Exchange Register Number", '<input id="asa-ex-reg" class="ui-input" type="text" placeholder="Enter registration number" />', { required: true })}
+                    ${field("Customer Exchange Value", '<input id="asa-ex-cust-val" class="ui-input" type="number" min="0" placeholder="0" />', { required: true })}
+                    ${field("Exchange Dealer", '<input id="asa-ex-dealer" class="ui-input" type="text" placeholder="Enter dealer name" />', { required: true })}
+                    ${field("Dealer Exchange Value", '<input id="asa-ex-deal-val" class="ui-input" type="number" min="0" placeholder="0" />', { required: true })}
                 </div>
-
-                <div>
-                    <label>Customer On Road Price *</label>
-                    <input id="asa-customer-on-road-price" type="number" min="0" placeholder="0" />
-                </div>
-
-                <div>
-                    <label>Estimated Disbursement (Optional)</label>
-                    <input id="asa-estimated-disbursement" type="number" min="0" placeholder="0" />
-                </div>
-
-                <div>
-                    <label>Received Down Payment *</label>
-                    <input id="asa-received-dp" type="number" min="0" placeholder="0" />
-                </div>
-
-                <div>
-                    <label>Due Amount</label>
-                    <input id="asa-due-amount" type="number" readonly placeholder="0" />
-                    <div class="calculation-info">Formula: Total DP - (Advance + Received DP + Cust Exchange Value)</div>
-                </div>
-
-                <div>
-                    <button id="asa-submit" type="submit">Submit</button>
-                    <span id="asa-status"></span>
-                </div>
-            </form>
-        `;
+                ${field("Customer On Road Price", '<input id="asa-customer-on-road-price" class="ui-input" type="number" min="0" placeholder="0" />', { required: true })}
+                ${field("Estimated Disbursement", '<input id="asa-estimated-disbursement" class="ui-input" type="number" min="0" placeholder="0" />')}
+                ${field("Received Down Payment", '<input id="asa-received-dp" class="ui-input" type="number" min="0" placeholder="0" />', { required: true })}
+                ${field("Due Amount", '<input id="asa-due-amount" class="ui-input ui-readonly" type="number" readonly placeholder="0" />', { hint: 'Formula: Total DP - (Advance + Received DP + Cust Exchange Value)' })}
+                ${formActions("asa-submit", "asa-status")}
+            `
+        });
 
         const priceTagInput = container.querySelector("#asa-price-tag");
         const customerNameInput = container.querySelector("#asa-customer-name");
@@ -139,7 +66,7 @@ const AddSaleAccountForm = (() => {
             const advance = anyAdvanceSelect.value === "YES" ? (parseFloat(advanceAmountInput.value) || 0) : 0;
             const received = parseFloat(receivedDpInput.value) || 0;
             const exVal = anyExchangeSelect.value === "YES" ? (parseFloat(exCustValInput.value) || 0) : 0;
-            
+
             const due = total - (advance + received + exVal);
             dueAmountInput.value = due;
         };
@@ -176,25 +103,22 @@ const AddSaleAccountForm = (() => {
                     customerNameInput.value = "";
                     return;
                 }
-                
+
                 customerNameInput.value = "Fetching...";
-                statusEl.textContent = "Fetching customer details...";
-                statusEl.className = "info";
-                
+                setStatus(statusEl, "Fetching customer details...", "info", true);
+
                 try {
                     const res = await backendRequest("getChassis", val);
                     if (res.status === 1 && res.data) {
                         customerNameInput.value = res.data.customer || "N/A";
-                        statusEl.textContent = "";
+                        setStatus(statusEl);
                     } else {
                         customerNameInput.value = "Not Found";
-                        statusEl.textContent = "Chassis details not found.";
-                        statusEl.className = "error";
+                        setStatus(statusEl, "Chassis details not found.", "error");
                     }
                 } catch (err) {
                     customerNameInput.value = "Error";
-                    statusEl.textContent = "Error fetching chassis details.";
-                    statusEl.className = "error";
+                    setStatus(statusEl, "Error fetching chassis details.", "error");
                 }
             }
         });
@@ -210,30 +134,25 @@ const AddSaleAccountForm = (() => {
                 }
                 advanceAmountInput.value = "";
                 advanceAmountInput.placeholder = "Fetching...";
-                statusEl.textContent = "Fetching advance details...";
-                statusEl.className = "info";
+                setStatus(statusEl, "Fetching advance details...", "info", true);
                 try {
                     const res = await backendRequest("getAdvance", val);
                     if (res.status === 1 && res.data) {
                         advanceAmountInput.value = res.data.amount || 0;
-                        statusEl.textContent = "";
+                        setStatus(statusEl);
                     } else {
                         advanceAmountInput.value = 0;
-                        statusEl.textContent = "Advancer not found or not active.";
-                        statusEl.className = "error";
+                        setStatus(statusEl, "Advancer not found or not active.", "error");
                     }
                 } catch (err) {
                     advanceAmountInput.value = 0;
-                    statusEl.textContent = "Error fetching advance details.";
-                    statusEl.className = "error";
+                    setStatus(statusEl, "Error fetching advance details.", "error");
                 }
                 updateDueAmount();
             }
         });
 
-        // Fetch dropdowns early for UX
-        statusEl.textContent = "Fetching dropdown values...";
-        statusEl.className = "info";
+        setStatus(statusEl, "Fetching dropdown values...", "info", true);
         try {
             const [chassisRes, advancerRes] = await Promise.all([
                 backendRequest("getDropdown", CHASSIS_COL),
@@ -242,12 +161,10 @@ const AddSaleAccountForm = (() => {
 
             if (chassisRes.status === 1) chassisDropdown.setOptions(chassisRes.data);
             if (advancerRes.status === 1) advancerDropdown.setOptions(advancerRes.data);
-            
-            statusEl.textContent = "";
-            statusEl.className = "";
+
+            setStatus(statusEl);
         } catch (err) {
-            statusEl.textContent = "Error fetching dropdown values.";
-            statusEl.className = "error";
+            setStatus(statusEl, "Error fetching dropdown values.", "error");
         }
 
         form.addEventListener("submit", async (e) => {
@@ -261,8 +178,7 @@ const AddSaleAccountForm = (() => {
             const customerOnRoadPrice = onRoadPriceInput.value.trim();
 
             if (!chassis || !priceTagNumber || !totalDp || !receivedDp || !customerOnRoadPrice) {
-                statusEl.textContent = "Mandatory fields (*) are required.";
-                statusEl.className = "error";
+                setStatus(statusEl, "Mandatory fields (*) are required.", "error");
                 return;
             }
 
@@ -282,8 +198,7 @@ const AddSaleAccountForm = (() => {
                 const advancerName = advancerDropdown.getValue();
                 const advanceAmount = advanceAmountInput.value;
                 if (!advancerName || !advanceAmount) {
-                    statusEl.textContent = "Advancer name is required for YES.";
-                    statusEl.className = "error";
+                    setStatus(statusEl, "Advancer name is required for YES.", "error");
                     return;
                 }
                 payload.advancerName = advancerName;
@@ -298,8 +213,7 @@ const AddSaleAccountForm = (() => {
                 const exDealVal = exDealValInput.value.trim();
 
                 if (!exModel || !exReg || !exCustVal || !exDealer || !exDealVal) {
-                    statusEl.textContent = "Exchange fields are required for YES.";
-                    statusEl.className = "error";
+                    setStatus(statusEl, "Exchange fields are required for YES.", "error");
                     return;
                 }
                 payload.exchangeModel = exModel;
@@ -310,22 +224,18 @@ const AddSaleAccountForm = (() => {
             }
 
             submitButton.disabled = true;
-            statusEl.textContent = "Submitting Sale Account...";
-            statusEl.className = "info";
+            setStatus(statusEl, "Submitting Sale Account...", "info", true);
 
             try {
                 const res = await backendRequest("addSaleAccountForm", payload);
                 if (res.status === 1) {
-                    statusEl.textContent = "Sale Account added successfully. Refreshing...";
-                    statusEl.className = "success";
+                    setStatus(statusEl, "Sale Account added successfully. Refreshing...", "success");
                     setTimeout(() => window.location.reload(), 1500);
                 } else {
-                    statusEl.textContent = res.message || "Submission failed.";
-                    statusEl.className = "error";
+                    setStatus(statusEl, res.message || "Submission failed.", "error");
                 }
             } catch (err) {
-                statusEl.textContent = "Network error. Try again.";
-                statusEl.className = "error";
+                setStatus(statusEl, "Network error. Try again.", "error");
             } finally {
                 submitButton.disabled = false;
             }

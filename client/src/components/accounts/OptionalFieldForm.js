@@ -1,6 +1,6 @@
 import { backendRequest } from "../../api/index.js";
 import { SearchableDropdown } from "../SearchableDropdown.js";
-import "../../style/accounts/OptionalFieldForm.css";
+import { createFormLayout, createOption, field, formActions, setStatus } from "../ui.js";
 
 const COLS = {
     KEY_NUMBER: 14,
@@ -19,91 +19,34 @@ const OptionalFieldForm = (() => {
             advName: null
         };
 
-        container.innerHTML = `
-            <form id="optional-field-form" novalidate>
-                <h2>Optional Field Form</h2>
-
-                <div>
-                    <label>Optional Field *</label>
-                    <select id="off-type">
-                        <option value="">Select type...</option>
-                        <option value="1">Key Number</option>
-                        <option value="2">Customer Alternate Mobile Number</option>
-                        <option value="3">Estimated Disbursement</option>
-                        <option value="4">Advancer Alternate Mobile Number</option>
-                    </select>
-                </div>
-
-                <!-- Case 1: Key Number -->
+        container.innerHTML = createFormLayout({
+            id: "optional-field-form",
+            title: "Optional Field Form",
+            body: `
+                ${field("Optional Field", `<select id="off-type" class="ui-select">${createOption("", "Select type...", true)}${createOption("1", "Key Number")}${createOption("2", "Customer Alternate Mobile Number")}${createOption("3", "Estimated Disbursement")}${createOption("4", "Advancer Alternate Mobile Number")}</select>`, { required: true, full: true })}
                 <div id="section-1" class="off-section">
-                    <div>
-                        <label>Chassis Number *</label>
-                        <div id="off-chassis-1"></div>
-                    </div>
-                    <div>
-                        <label>Model</label>
-                        <input id="off-model-1" type="text" readonly placeholder="Auto-fetched" />
-                    </div>
-                    <div>
-                        <label>Color</label>
-                        <input id="off-color-1" type="text" readonly placeholder="Auto-fetched" />
-                    </div>
-                    <div>
-                        <label>Key Number *</label>
-                        <input id="off-key-val" type="text" placeholder="Enter key number" />
-                    </div>
+                    ${field("Chassis Number", '<div id="off-chassis-1"></div>', { required: true })}
+                    ${field("Model", '<input id="off-model-1" class="ui-input ui-readonly" type="text" readonly placeholder="Auto-fetched" />')}
+                    ${field("Color", '<input id="off-color-1" class="ui-input ui-readonly" type="text" readonly placeholder="Auto-fetched" />')}
+                    ${field("Key Number", '<input id="off-key-val" class="ui-input" type="text" placeholder="Enter key number" />', { required: true })}
                 </div>
-
-                <!-- Case 2: Customer Alt Mobile -->
                 <div id="section-2" class="off-section">
-                    <div>
-                        <label>Chassis Number *</label>
-                        <div id="off-chassis-2"></div>
-                    </div>
-                    <div>
-                        <label>Customer Name</label>
-                        <input id="off-customer-2" type="text" readonly placeholder="Auto-fetched" />
-                    </div>
-                    <div>
-                        <label>Customer Alternate Mobile Number *</label>
-                        <input id="off-cust-mobile-val" type="tel" maxlength="10" placeholder="10-digit number" oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
-                    </div>
+                    ${field("Chassis Number", '<div id="off-chassis-2"></div>', { required: true })}
+                    ${field("Customer Name", '<input id="off-customer-2" class="ui-input ui-readonly" type="text" readonly placeholder="Auto-fetched" />')}
+                    ${field("Customer Alternate Mobile Number", '<input id="off-cust-mobile-val" class="ui-input" type="tel" maxlength="10" placeholder="10-digit number" oninput="this.value = this.value.replace(/[^0-9]/g, \"\")" />', { required: true })}
                 </div>
-
-                <!-- Case 3: Estimated Disbursement -->
                 <div id="section-3" class="off-section">
-                    <div>
-                        <label>Chassis Number *</label>
-                        <div id="off-chassis-3"></div>
-                    </div>
-                    <div>
-                        <label>Customer Name</label>
-                        <input id="off-customer-3" type="text" readonly placeholder="Auto-fetched" />
-                    </div>
-                    <div>
-                        <label>Estimated Disbursement *</label>
-                        <input id="off-est-disb-val" type="number" placeholder="Enter amount" />
-                    </div>
+                    ${field("Chassis Number", '<div id="off-chassis-3"></div>', { required: true })}
+                    ${field("Customer Name", '<input id="off-customer-3" class="ui-input ui-readonly" type="text" readonly placeholder="Auto-fetched" />')}
+                    ${field("Estimated Disbursement", '<input id="off-est-disb-val" class="ui-input" type="number" placeholder="Enter amount" />', { required: true })}
                 </div>
-
-                <!-- Case 4: Advancer Alt Mobile -->
                 <div id="section-4" class="off-section">
-                    <div>
-                        <label>Advancer Name *</label>
-                        <div id="off-adv-name-4"></div>
-                    </div>
-                    <div>
-                        <label>Advancer Alternate Mobile Number *</label>
-                        <input id="off-adv-mobile-val" type="tel" maxlength="10" placeholder="10-digit number" oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
-                    </div>
+                    ${field("Advancer Name", '<div id="off-adv-name-4"></div>', { required: true })}
+                    ${field("Advancer Alternate Mobile Number", '<input id="off-adv-mobile-val" class="ui-input" type="tel" maxlength="10" placeholder="10-digit number" oninput="this.value = this.value.replace(/[^0-9]/g, \"\")" />', { required: true })}
                 </div>
-
-                <div>
-                    <button id="off-submit" type="submit" disabled>Submit</button>
-                    <span id="off-status"></span>
-                </div>
-            </form>
-        `;
+                ${formActions("off-submit", "off-status", "Submit", true)}
+            `
+        });
 
         const typeSelect = container.querySelector("#off-type");
         const submitButton = container.querySelector("#off-submit");
@@ -124,15 +67,18 @@ const OptionalFieldForm = (() => {
             4: { alternateMobileNumber: container.querySelector("#off-adv-mobile-val") }
         };
 
-        // Initialize Dropdowns
         dropdowns.keyChassis = SearchableDropdown.mount(container.querySelector("#off-chassis-1"), {
             placeholder: "Select chassis number...",
             onChange: async (val) => {
                 if (!val) { inputs[1].model.value = ""; inputs[1].color.value = ""; return; }
-                inputs[1].model.value = "Fetching..."; inputs[1].color.value = "Fetching...";
+                inputs[1].model.value = "Fetching...";
+                inputs[1].color.value = "Fetching...";
                 try {
                     const res = await backendRequest("getChassis", val);
-                    if (res.status === 1) { inputs[1].model.value = res.data.model || "N/A"; inputs[1].color.value = res.data.color || "N/A"; }
+                    if (res.status === 1) {
+                        inputs[1].model.value = res.data.model || "N/A";
+                        inputs[1].color.value = res.data.color || "N/A";
+                    }
                 } catch (e) { console.error(e); }
             }
         });
@@ -165,7 +111,6 @@ const OptionalFieldForm = (() => {
             placeholder: "Select advancer name..."
         });
 
-        // Type Change Handler
         typeSelect.addEventListener("change", () => {
             Object.values(sections).forEach(s => s.classList.remove("visible"));
             const code = typeSelect.value;
@@ -175,12 +120,10 @@ const OptionalFieldForm = (() => {
             } else {
                 submitButton.disabled = true;
             }
-            statusEl.textContent = "";
+            setStatus(statusEl);
         });
 
-        // Pre-fetch Dropdowns
-        statusEl.textContent = "Fetching dropdowns...";
-        statusEl.className = "info";
+        setStatus(statusEl, "Fetching dropdowns...", "info", true);
         try {
             const [res1, res2, res3, res4] = await Promise.all([
                 backendRequest("getDropdown", COLS.KEY_NUMBER),
@@ -192,10 +135,9 @@ const OptionalFieldForm = (() => {
             if (res2.status === 1) dropdowns.custChassis.setOptions(res2.data);
             if (res3.status === 1) dropdowns.estChassis.setOptions(res3.data);
             if (res4.status === 1) dropdowns.advName.setOptions(res4.data);
-            statusEl.textContent = "";
+            setStatus(statusEl);
         } catch (err) {
-            statusEl.textContent = "Error loading data.";
-            statusEl.className = "error";
+            setStatus(statusEl, "Error loading data.", "error");
         }
 
         form.addEventListener("submit", async (e) => {
@@ -206,43 +148,39 @@ const OptionalFieldForm = (() => {
             if (code === 1) {
                 payload.chassis = dropdowns.keyChassis.getValue();
                 payload.keyNumber = inputs[1].keyNumber.value.trim();
-                if (!payload.chassis || !payload.keyNumber) { statusEl.textContent = "All fields required."; statusEl.className = "error"; return; }
+                if (!payload.chassis || !payload.keyNumber) { setStatus(statusEl, "All fields required.", "error"); return; }
             } else if (code === 2) {
                 payload.chassis = dropdowns.custChassis.getValue();
                 payload.alternateMobileNumber = inputs[2].alternateMobileNumber.value.trim();
-                if (!payload.chassis || !payload.alternateMobileNumber) { statusEl.textContent = "All fields required."; statusEl.className = "error"; return; }
+                if (!payload.chassis || !payload.alternateMobileNumber) { setStatus(statusEl, "All fields required.", "error"); return; }
                 const phoneRegex = /^[0-9]{10}$/;
-                if (!phoneRegex.test(payload.alternateMobileNumber)) { statusEl.textContent = "Valid 10-digit mobile number required."; statusEl.className = "error"; return; }
+                if (!phoneRegex.test(payload.alternateMobileNumber)) { setStatus(statusEl, "Valid 10-digit mobile number required.", "error"); return; }
             } else if (code === 3) {
                 payload.chassis = dropdowns.estChassis.getValue();
                 payload.estimatedDisbursement = inputs[3].estimatedDisbursement.value.trim();
-                if (!payload.chassis || !payload.estimatedDisbursement) { statusEl.textContent = "All fields required."; statusEl.className = "error"; return; }
+                if (!payload.chassis || !payload.estimatedDisbursement) { setStatus(statusEl, "All fields required.", "error"); return; }
             } else if (code === 4) {
                 payload.advancerName = dropdowns.advName.getValue();
                 payload.alternateMobileNumber = inputs[4].alternateMobileNumber.value.trim();
-                if (!payload.advancerName || !payload.alternateMobileNumber) { statusEl.textContent = "All fields required."; statusEl.className = "error"; return; }
+                if (!payload.advancerName || !payload.alternateMobileNumber) { setStatus(statusEl, "All fields required.", "error"); return; }
                 const phoneRegex = /^[0-9]{10}$/;
-                if (!phoneRegex.test(payload.alternateMobileNumber)) { statusEl.textContent = "Valid 10-digit mobile number required."; statusEl.className = "error"; return; }
+                if (!phoneRegex.test(payload.alternateMobileNumber)) { setStatus(statusEl, "Valid 10-digit mobile number required.", "error"); return; }
             }
 
             submitButton.disabled = true;
-            statusEl.textContent = "Submitting...";
-            statusEl.className = "info";
+            setStatus(statusEl, "Submitting...", "info", true);
 
             try {
                 const res = await backendRequest("optionalFieldForm", payload);
                 if (res.status === 1) {
-                    statusEl.textContent = "Updated successfully. Refreshing...";
-                    statusEl.className = "success";
+                    setStatus(statusEl, "Updated successfully. Refreshing...", "success");
                     setTimeout(() => window.location.reload(), 1500);
                 } else {
-                    statusEl.textContent = res.message || "Failed.";
-                    statusEl.className = "error";
+                    setStatus(statusEl, res.message || "Failed.", "error");
                     submitButton.disabled = false;
                 }
             } catch (err) {
-                statusEl.textContent = "Network error.";
-                statusEl.className = "error";
+                setStatus(statusEl, "Network error.", "error");
                 submitButton.disabled = false;
             }
         });

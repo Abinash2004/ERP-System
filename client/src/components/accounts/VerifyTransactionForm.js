@@ -1,6 +1,6 @@
 import { backendRequest } from "../../api/index.js";
 import { SearchableDropdown } from "../SearchableDropdown.js";
-import "../../style/accounts/VerifyTransactionForm.css";
+import { createFormLayout, createOption, field, formActions, setStatus } from "../ui.js";
 
 const COLS = {
     ADV_REC: 18,
@@ -35,146 +35,50 @@ const VerifyTransactionForm = (() => {
             exchCode: null
         };
 
-        container.innerHTML = `
-            <form id="verify-transaction-form" novalidate>
-                <h2>Verify Transaction Form</h2>
-
-                <div>
-                    <label>Transaction Field *</label>
-                    <select id="vtf-type">
-                        <option value="">Select type...</option>
-                        <option value="1">Advance Received</option>
-                        <option value="2">Advance Returned</option>
-                        <option value="3">Received Down Payment</option>
-                        <option value="4">Insurance Amount</option>
-                        <option value="5">RTO Amount</option>
-                        <option value="6">Disbursement Amount</option>
-                        <option value="7">Exchange Amount</option>
-                    </select>
-                </div>
-
-                <!-- Case 1: Advance Received -->
+        container.innerHTML = createFormLayout({
+            id: "verify-transaction-form",
+            title: "Verify Transaction Form",
+            body: `
+                ${field("Transaction Field", `<select id="vtf-type" class="ui-select">${createOption("", "Select type...", true)}${createOption("1", "Advance Received")}${createOption("2", "Advance Returned")}${createOption("3", "Received Down Payment")}${createOption("4", "Insurance Amount")}${createOption("5", "RTO Amount")}${createOption("6", "Disbursement Amount")}${createOption("7", "Exchange Amount")}</select>`, { required: true, full: true })}
                 <div id="vtf-section-1" class="vtf-section">
-                    <div>
-                        <label>Advancer Name *</label>
-                        <div id="vtf-adv-rec-name"></div>
-                    </div>
-                    <div>
-                        <label>Advance Received Amount</label>
-                        <input id="vtf-adv-rec-amt" type="text" readonly placeholder="Auto-fetched" />
-                    </div>
-                    <div>
-                        <label>Transaction Code *</label>
-                        <div id="vtf-adv-rec-code"></div>
-                    </div>
+                    ${field("Advancer Name", '<div id="vtf-adv-rec-name"></div>', { required: true })}
+                    ${field("Advance Received Amount", '<input id="vtf-adv-rec-amt" class="ui-input ui-readonly" type="text" readonly placeholder="Auto-fetched" />')}
+                    ${field("Transaction Code", '<div id="vtf-adv-rec-code"></div>', { required: true })}
                 </div>
-
-                <!-- Case 2: Advance Returned -->
                 <div id="vtf-section-2" class="vtf-section">
-                    <div>
-                        <label>Advancer Name *</label>
-                        <div id="vtf-adv-ret-name"></div>
-                    </div>
-                    <div>
-                        <label>Advance Returned Amount</label>
-                        <input id="vtf-adv-ret-amt" type="text" readonly placeholder="Auto-fetched" />
-                    </div>
-                    <div>
-                        <label>Transaction Code *</label>
-                        <div id="vtf-adv-ret-code"></div>
-                    </div>
+                    ${field("Advancer Name", '<div id="vtf-adv-ret-name"></div>', { required: true })}
+                    ${field("Advance Returned Amount", '<input id="vtf-adv-ret-amt" class="ui-input ui-readonly" type="text" readonly placeholder="Auto-fetched" />')}
+                    ${field("Transaction Code", '<div id="vtf-adv-ret-code"></div>', { required: true })}
                 </div>
-
-                <!-- Case 3: Received Down Payment -->
                 <div id="vtf-section-3" class="vtf-section">
-                    <div>
-                        <label>Chassis Number *</label>
-                        <div id="vtf-dp-chassis"></div>
-                    </div>
-                    <div>
-                        <label>Customer Name</label>
-                        <input id="vtf-dp-cust" type="text" readonly placeholder="Auto-fetched" />
-                    </div>
-                    <div>
-                        <label>Received Down Payment Amount</label>
-                        <input id="vtf-dp-amt" type="text" readonly placeholder="Auto-fetched" />
-                    </div>
-                    <div>
-                        <label>Transaction Code *</label>
-                        <div id="vtf-dp-code"></div>
-                    </div>
+                    ${field("Chassis Number", '<div id="vtf-dp-chassis"></div>', { required: true })}
+                    ${field("Customer Name", '<input id="vtf-dp-cust" class="ui-input ui-readonly" type="text" readonly placeholder="Auto-fetched" />')}
+                    ${field("Received Down Payment Amount", '<input id="vtf-dp-amt" class="ui-input ui-readonly" type="text" readonly placeholder="Auto-fetched" />')}
+                    ${field("Transaction Code", '<div id="vtf-dp-code"></div>', { required: true })}
                 </div>
-
-                <!-- Case 4: Insurance Amount -->
                 <div id="vtf-section-4" class="vtf-section">
-                    <div>
-                        <label>Chassis Number *</label>
-                        <div id="vtf-ins-chassis"></div>
-                    </div>
-                    <div>
-                        <label>Customer Name</label>
-                        <input id="vtf-ins-cust" type="text" readonly placeholder="Auto-fetched" />
-                    </div>
-                    <div>
-                        <label>Transaction Code *</label>
-                        <div id="vtf-ins-code"></div>
-                    </div>
+                    ${field("Chassis Number", '<div id="vtf-ins-chassis"></div>', { required: true })}
+                    ${field("Customer Name", '<input id="vtf-ins-cust" class="ui-input ui-readonly" type="text" readonly placeholder="Auto-fetched" />')}
+                    ${field("Transaction Code", '<div id="vtf-ins-code"></div>', { required: true })}
                 </div>
-
-                <!-- Case 5: RTO Amount -->
                 <div id="vtf-section-5" class="vtf-section">
-                    <div>
-                        <label>Chassis Number *</label>
-                        <div id="vtf-rto-chassis"></div>
-                    </div>
-                    <div>
-                        <label>Customer Name</label>
-                        <input id="vtf-rto-cust" type="text" readonly placeholder="Auto-fetched" />
-                    </div>
-                    <div>
-                        <label>Transaction Code *</label>
-                        <div id="vtf-rto-code"></div>
-                    </div>
+                    ${field("Chassis Number", '<div id="vtf-rto-chassis"></div>', { required: true })}
+                    ${field("Customer Name", '<input id="vtf-rto-cust" class="ui-input ui-readonly" type="text" readonly placeholder="Auto-fetched" />')}
+                    ${field("Transaction Code", '<div id="vtf-rto-code"></div>', { required: true })}
                 </div>
-
-                <!-- Case 6: Disbursement Amount -->
                 <div id="vtf-section-6" class="vtf-section">
-                    <div>
-                        <label>Chassis Number *</label>
-                        <div id="vtf-disb-chassis"></div>
-                    </div>
-                    <div>
-                        <label>Customer Name</label>
-                        <input id="vtf-disb-cust" type="text" readonly placeholder="Auto-fetched" />
-                    </div>
-                    <div>
-                        <label>Transaction Code *</label>
-                        <div id="vtf-disb-code"></div>
-                    </div>
+                    ${field("Chassis Number", '<div id="vtf-disb-chassis"></div>', { required: true })}
+                    ${field("Customer Name", '<input id="vtf-disb-cust" class="ui-input ui-readonly" type="text" readonly placeholder="Auto-fetched" />')}
+                    ${field("Transaction Code", '<div id="vtf-disb-code"></div>', { required: true })}
                 </div>
-
-                <!-- Case 7: Exchange Amount -->
                 <div id="vtf-section-7" class="vtf-section">
-                    <div>
-                        <label>Chassis Number *</label>
-                        <div id="vtf-exch-chassis"></div>
-                    </div>
-                    <div>
-                        <label>Customer Name</label>
-                        <input id="vtf-exch-cust" type="text" readonly placeholder="Auto-fetched" />
-                    </div>
-                    <div>
-                        <label>Transaction Code *</label>
-                        <div id="vtf-exch-code"></div>
-                    </div>
+                    ${field("Chassis Number", '<div id="vtf-exch-chassis"></div>', { required: true })}
+                    ${field("Customer Name", '<input id="vtf-exch-cust" class="ui-input ui-readonly" type="text" readonly placeholder="Auto-fetched" />')}
+                    ${field("Transaction Code", '<div id="vtf-exch-code"></div>', { required: true })}
                 </div>
-
-                <div>
-                    <button id="vtf-submit" type="submit" disabled>Submit</button>
-                    <span id="vtf-status"></span>
-                </div>
-            </form>
-        `;
+                ${formActions("vtf-submit", "vtf-status", "Submit", true)}
+            `
+        });
 
         const typeSelect = container.querySelector("#vtf-type");
         const submitButton = container.querySelector("#vtf-submit");
@@ -184,10 +88,10 @@ const VerifyTransactionForm = (() => {
         const sections = {};
         for (let i = 1; i <= 7; i++) sections[i] = container.querySelector(`#vtf-section-${i}`);
 
-        // Helper for auto-fetching Chassis data
         async function fetchChassisData(val, custEl, amtEl = null) {
             if (!val) { custEl.value = ""; if (amtEl) amtEl.value = ""; return; }
-            custEl.value = "Fetching..."; if (amtEl) amtEl.value = "Fetching...";
+            custEl.value = "Fetching...";
+            if (amtEl) amtEl.value = "Fetching...";
             try {
                 const res = await backendRequest("getChassis", val);
                 if (res.status === 1) {
@@ -197,7 +101,6 @@ const VerifyTransactionForm = (() => {
             } catch (e) { console.error(e); }
         }
 
-        // Helper for auto-fetching Advancer data
         async function fetchAdvancerData(val, amtEl, isReturn = false) {
             if (!val) { amtEl.value = ""; return; }
             amtEl.value = "Fetching...";
@@ -209,7 +112,6 @@ const VerifyTransactionForm = (() => {
             } catch (e) { console.error(e); }
         }
 
-        // Initialize Dropdowns
         dropdowns.advRecName = SearchableDropdown.mount(container.querySelector("#vtf-adv-rec-name"), {
             placeholder: "Select advancer...",
             onChange: (val) => fetchAdvancerData(val, container.querySelector("#vtf-adv-rec-amt"))
@@ -252,7 +154,6 @@ const VerifyTransactionForm = (() => {
         });
         dropdowns.exchCode = SearchableDropdown.mount(container.querySelector("#vtf-exch-code"), { placeholder: "Select code..." });
 
-        // Type Change Handler
         typeSelect.addEventListener("change", () => {
             Object.values(sections).forEach(s => s.classList.remove("visible"));
             const code = typeSelect.value;
@@ -262,12 +163,10 @@ const VerifyTransactionForm = (() => {
             } else {
                 submitButton.disabled = true;
             }
-            statusEl.textContent = "";
+            setStatus(statusEl);
         });
 
-        // Pre-fetch all dropdowns
-        statusEl.textContent = "Fetching dropdowns...";
-        statusEl.className = "info";
+        setStatus(statusEl, "Fetching dropdowns...", "info", true);
         try {
             const results = await Promise.all([
                 backendRequest("getDropdown", COLS.ADV_REC),
@@ -301,10 +200,9 @@ const VerifyTransactionForm = (() => {
             if (results[8].status === 1) dropdowns.disbCode.setOptions(results[8].data);
             if (results[9].status === 1) dropdowns.exchChassis.setOptions(results[9].data);
 
-            statusEl.textContent = "";
+            setStatus(statusEl);
         } catch (err) {
-            statusEl.textContent = "Error loading initial data.";
-            statusEl.className = "error";
+            setStatus(statusEl, "Error loading initial data.", "error");
         }
 
         form.addEventListener("submit", async (e) => {
@@ -327,29 +225,24 @@ const VerifyTransactionForm = (() => {
             payload[c.codeKey] = c.codeDD.getValue();
 
             if (!payload[c.key] || !payload[c.codeKey]) {
-                statusEl.textContent = "All fields required.";
-                statusEl.className = "error";
+                setStatus(statusEl, "All fields required.", "error");
                 return;
             }
 
             submitButton.disabled = true;
-            statusEl.textContent = "Submitting...";
-            statusEl.className = "info";
+            setStatus(statusEl, "Submitting...", "info", true);
 
             try {
                 const res = await backendRequest("verifyTransactionForm", payload);
                 if (res.status === 1) {
-                    statusEl.textContent = "Updated successfully. Refreshing...";
-                    statusEl.className = "success";
+                    setStatus(statusEl, "Updated successfully. Refreshing...", "success");
                     setTimeout(() => window.location.reload(), 1500);
                 } else {
-                    statusEl.textContent = res.message || "Failed.";
-                    statusEl.className = "error";
+                    setStatus(statusEl, res.message || "Failed.", "error");
                     submitButton.disabled = false;
                 }
             } catch (err) {
-                statusEl.textContent = "Network error.";
-                statusEl.className = "error";
+                setStatus(statusEl, "Network error.", "error");
                 submitButton.disabled = false;
             }
         });

@@ -9,9 +9,7 @@ import { AddSaleAccountForm } from "../components/accounts/AddSaleAccountForm.js
 import { AddRegistrationForm } from "../components/accounts/AddRegistrationForm.js";
 import { OptionalFieldForm } from "../components/accounts/OptionalFieldForm.js";
 import { VerifyTransactionForm } from "../components/accounts/VerifyTransactionForm.js";
-import "../style/accounts/AccountsPage.css";
-import "../style/accounts/Sidebar.css";
-import "../style/accounts/FormContainer.css";
+import { renderSidebarLayout } from "../components/ui.js";
 
 const FORMS = [
     { label: "Add Stock Form", component: AddStockForm },
@@ -27,28 +25,23 @@ const FORMS = [
 ];
 
 export function renderAccounts(session) {
-    document.getElementById("app").innerHTML = `
-        <div id="accounts-page">
-            <div id="accounts-sidebar">
-                <h3>Accounts</h3>
-                <ul id="accounts-form-list"></ul>
-                <hr>
-                <button id="logout">Logout</button>
-            </div>
-            <div id="accounts-content">
-                <p>Select a form from the sidebar.</p>
-            </div>
-        </div>
-    `;
+    document.getElementById("app").innerHTML = renderSidebarLayout({
+        pageId: "accounts-page",
+        sidebarTitle: "Accounts",
+        listId: "accounts-form-list",
+        contentId: "accounts-content",
+        emptyText: "Select a form from the sidebar."
+    });
 
-    const formList    = document.getElementById("accounts-form-list");
+    const formList = document.getElementById("accounts-form-list");
     const contentArea = document.getElementById("accounts-content");
-    let activeIndex   = null;
+    let activeIndex = null;
 
     FORMS.forEach(({ label, component }, index) => {
         const li = document.createElement("li");
-        li.textContent   = label;
+        li.textContent = label;
         li.dataset.index = index;
+        li.className = "app-nav__item";
 
         li.addEventListener("click", () => {
             if (activeIndex === index) return;

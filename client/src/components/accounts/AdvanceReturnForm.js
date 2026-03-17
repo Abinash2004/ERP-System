@@ -1,6 +1,6 @@
 import { backendRequest } from "../../api/index.js";
 import { SearchableDropdown } from "../SearchableDropdown.js";
-import "../../style/accounts/AdvanceReturnForm.css";
+import { createFormLayout, field, formActions, setStatus } from "../ui.js";
 
 const ADVANCER_COL = 9;
 const RETURN_PERSON_COL = 4;
@@ -11,51 +11,33 @@ const AdvanceReturnForm = (() => {
         let advancerDropdown = null;
         let returnPersonDropdown = null;
 
-        container.innerHTML = `
-            <form id="advance-return-form" novalidate>
-                <h2>Advance Return Form</h2>
+        container.innerHTML = createFormLayout({
+            id: "advance-return-form",
+            title: "Advance Return Form",
+            body: `
+                ${field("Advancer Name", '<div id="at-advancer-container"></div>', { required: true })}
+                ${field("Advance Return", '<input id="at-return-amount" class="ui-input" type="number" min="0" placeholder="Enter amount to return" />', { required: true })}
+                ${field("Return Person", '<div id="at-return-person-container"></div>', { required: true })}
+                ${formActions("at-submit", "at-status")}
+            `
+        });
 
-                <div>
-                    <label>Advancer Name *</label>
-                    <div id="at-advancer-container"></div>
-                </div>
-
-                <div>
-                    <label>Advance Return *</label>
-                    <input id="at-return-amount" type="number" min="0" placeholder="Enter amount to return" />
-                </div>
-
-                <div>
-                    <label>Return Person *</label>
-                    <div id="at-return-person-container"></div>
-                </div>
-
-                <div>
-                    <button id="at-submit" type="submit">Submit</button>
-                    <span id="at-status"></span>
-                </div>
-            </form>
-        `;
-
-        const advancerContainer = container.querySelector("#at-advancer-container");
         const returnAmountInput = container.querySelector("#at-return-amount");
-        const personContainer   = container.querySelector("#at-return-person-container");
-        const submitButton       = container.querySelector("#at-submit");
-        const statusEl           = container.querySelector("#at-status");
-        const form               = container.querySelector("#advance-return-form");
+        const submitButton = container.querySelector("#at-submit");
+        const statusEl = container.querySelector("#at-status");
+        const form = container.querySelector("#advance-return-form");
 
-        advancerDropdown = SearchableDropdown.mount(advancerContainer, {
-            options:     [],
+        advancerDropdown = SearchableDropdown.mount(container.querySelector("#at-advancer-container"), {
+            options: [],
             placeholder: "Select advancer name..."
         });
 
-        returnPersonDropdown = SearchableDropdown.mount(personContainer, {
-            options:     [],
+        returnPersonDropdown = SearchableDropdown.mount(container.querySelector("#at-return-person-container"), {
+            options: [],
             placeholder: "Select return person..."
         });
 
-        statusEl.textContent = "Fetching dropdown values...";
-        statusEl.className   = "info";
+        setStatus(statusEl, "Fetching dropdown values...", "info", true);
 
         try {
             const [advancerRes, personRes] = await Promise.all([
@@ -66,51 +48,42 @@ const AdvanceReturnForm = (() => {
             if (advancerRes.status === 1) advancerDropdown.setOptions(advancerRes.data);
             if (personRes.status === 1) returnPersonDropdown.setOptions(personRes.data);
 
-            statusEl.textContent = "";
-            statusEl.className   = "";
+            setStatus(statusEl);
         } catch (err) {
-            statusEl.textContent = "Error fetching dropdown values.";
-            statusEl.className   = "error";
+            setStatus(statusEl, "Error fetching dropdown values.", "error");
             console.error("[getDropdown]", err);
         }
 
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
-            statusEl.textContent = "";
+            setStatus(statusEl);
 
-            const advancer_name  = advancerDropdown.getValue();
+            const advancer_name = advancerDropdown.getValue();
             const advance_return = returnAmountInput.value.trim();
-            const return_person  = returnPersonDropdown.getValue();
+            const return_person = returnPersonDropdown.getValue();
 
             if (!advancer_name || !advance_return || !return_person) {
-                statusEl.textContent = "All fields are mandatory.";
-                statusEl.className   = "error";
+                setStatus(statusEl, "All fields are mandatory.", "error");
                 return;
             }
 
-            const payload = {
-                advancer_name,
-                advance_return: parseFloat(advance_return),
-                return_person
-            };
-
             submitButton.disabled = true;
-            statusEl.textContent  = "Submitting...";
-            statusEl.className    = "info";
+            setStatus(statusEl, "Submitting...", "info", true);
 
             try {
-                const res = await backendRequest("advanceReturnForm", payload);
+                const res = await backendRequest("advanceReturnForm", {
+                    advancer_name,
+                    advance_return: parseFloat(advance_return),
+                    return_person
+                });
                 if (res.status === 1) {
-                    statusEl.textContent = "Advance returned successfully. Refreshing...";
-                    statusEl.className   = "success";
+                    setStatus(statusEl, "Advance returned successfully. Refreshing...", "success");
                     setTimeout(() => window.location.reload(), 1500);
                 } else {
-                    statusEl.textContent = res.message || "Submission failed.";
-                    statusEl.className   = "error";
+                    setStatus(statusEl, res.message || "Submission failed.", "error");
                 }
             } catch (err) {
-                statusEl.textContent = "Network error. Please try again.";
-                statusEl.className   = "error";
+                setStatus(statusEl, "Network error. Please try again.", "error");
                 console.error("[advanceReturnForm]", err);
             } finally {
                 submitButton.disabled = false;

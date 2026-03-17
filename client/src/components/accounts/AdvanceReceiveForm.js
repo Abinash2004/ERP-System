@@ -1,111 +1,67 @@
 import { backendRequest } from "../../api/index.js";
 import { SearchableDropdown } from "../SearchableDropdown.js";
-import "../../style/accounts/AdvanceReceiveForm.css";
+import { createFormLayout, field, formActions, setStatus } from "../ui.js";
 
-const COUNTER_COL  = 3;
+const COUNTER_COL = 3;
 const RECEIVER_COL = 4;
-const MODEL_COL    = 1;
-const COLOR_COL    = 2;
+const MODEL_COL = 1;
+const COLOR_COL = 2;
 
 const AdvanceReceiveForm = (() => {
 
     async function mount(container, session) {
-        let counterDropdown  = null;
+        let counterDropdown = null;
         let receiverDropdown = null;
-        let modelDropdown    = null;
-        let colorDropdown    = null;
+        let modelDropdown = null;
+        let colorDropdown = null;
 
-        container.innerHTML = `
-            <form id="advance-receive-form" novalidate>
-                <h2>Advance Receive Form</h2>
+        container.innerHTML = createFormLayout({
+            id: "advance-receive-form",
+            title: "Advance Receive Form",
+            body: `
+                ${field("Advancer Name", '<input id="ar-advancer-name" class="ui-input" type="text" placeholder="Enter advancer name" />', { required: true })}
+                ${field("Mobile Number", '<input id="ar-mobile" class="ui-input" type="tel" maxlength="10" placeholder="Enter 10-digit mobile number" oninput="this.value = this.value.replace(/[^0-9]/g, \"\")" />', { required: true })}
+                ${field("Alternate Mobile Number", '<input id="ar-alt-mobile" class="ui-input" type="tel" maxlength="10" placeholder="Enter 10-digit alternate mobile number" oninput="this.value = this.value.replace(/[^0-9]/g, \"\")" />')}
+                ${field("Amount", '<input id="ar-amount" class="ui-input" type="number" min="0" placeholder="Enter amount" />', { required: true })}
+                ${field("Counter", '<div id="ar-counter-container"></div>', { required: true })}
+                ${field("Receiver Name", '<div id="ar-receiver-container"></div>', { required: true })}
+                ${field("Model", '<div id="ar-model-container"></div>', { required: true })}
+                ${field("Color", '<div id="ar-color-container"></div>')}
+                ${field("Remark", '<textarea id="ar-remark" class="ui-textarea" placeholder="Enter remark" rows="4"></textarea>', { full: true })}
+                ${formActions("ar-submit", "ar-status")}
+            `
+        });
 
-                <div>
-                    <label>Advancer Name *</label>
-                    <input id="ar-advancer-name" type="text" placeholder="Enter advancer name" />
-                </div>
+        const nameInput = container.querySelector("#ar-advancer-name");
+        const mobileInput = container.querySelector("#ar-mobile");
+        const altMobileInput = container.querySelector("#ar-alt-mobile");
+        const amountInput = container.querySelector("#ar-amount");
+        const remarkInput = container.querySelector("#ar-remark");
+        const submitButton = container.querySelector("#ar-submit");
+        const statusEl = container.querySelector("#ar-status");
+        const form = container.querySelector("#advance-receive-form");
 
-                <div>
-                    <label>Mobile Number *</label>
-                    <input id="ar-mobile" type="tel" maxlength="10" placeholder="Enter 10-digit mobile number" oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
-                </div>
-
-                <div>
-                    <label>Alternate Mobile Number (Optional)</label>
-                    <input id="ar-alt-mobile" type="tel" maxlength="10" placeholder="Enter 10-digit alternate mobile number" oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
-                </div>
-
-                <div>
-                    <label>Amount *</label>
-                    <input id="ar-amount" type="number" min="0" placeholder="Enter amount" />
-                </div>
-
-                <div>
-                    <label>Counter *</label>
-                    <div id="ar-counter-container"></div>
-                </div>
-
-                <div>
-                    <label>Receiver Name *</label>
-                    <div id="ar-receiver-container"></div>
-                </div>
-
-                <div>
-                    <label>Model *</label>
-                    <div id="ar-model-container"></div>
-                </div>
-
-                <div>
-                    <label>Color (Optional)</label>
-                    <div id="ar-color-container"></div>
-                </div>
-
-                <div>
-                    <label>Remark (Optional)</label>
-                    <textarea id="ar-remark" placeholder="Enter remark" rows="3"></textarea>
-                </div>
-
-                <div>
-                    <button id="ar-submit" type="submit">Submit</button>
-                    <span id="ar-status"></span>
-                </div>
-            </form>
-        `;
-
-        const nameInput        = container.querySelector("#ar-advancer-name");
-        const mobileInput      = container.querySelector("#ar-mobile");
-        const altMobileInput   = container.querySelector("#ar-alt-mobile");
-        const amountInput      = container.querySelector("#ar-amount");
-        const counterContainer = container.querySelector("#ar-counter-container");
-        const receiverContainer = container.querySelector("#ar-receiver-container");
-        const modelContainer   = container.querySelector("#ar-model-container");
-        const colorContainer   = container.querySelector("#ar-color-container");
-        const remarkInput      = container.querySelector("#ar-remark");
-        const submitButton     = container.querySelector("#ar-submit");
-        const statusEl         = container.querySelector("#ar-status");
-        const form             = container.querySelector("#advance-receive-form");
-
-        counterDropdown = SearchableDropdown.mount(counterContainer, {
-            options:     [],
+        counterDropdown = SearchableDropdown.mount(container.querySelector("#ar-counter-container"), {
+            options: [],
             placeholder: "Select counter..."
         });
 
-        receiverDropdown = SearchableDropdown.mount(receiverContainer, {
-            options:     [],
+        receiverDropdown = SearchableDropdown.mount(container.querySelector("#ar-receiver-container"), {
+            options: [],
             placeholder: "Select receiver..."
         });
 
-        modelDropdown = SearchableDropdown.mount(modelContainer, {
-            options:     [],
+        modelDropdown = SearchableDropdown.mount(container.querySelector("#ar-model-container"), {
+            options: [],
             placeholder: "Select model..."
         });
 
-        colorDropdown = SearchableDropdown.mount(colorContainer, {
-            options:     [],
+        colorDropdown = SearchableDropdown.mount(container.querySelector("#ar-color-container"), {
+            options: [],
             placeholder: "Select color..."
         });
 
-        statusEl.textContent = "Fetching dropdown values...";
-        statusEl.className   = "info";
+        setStatus(statusEl, "Fetching dropdown values...", "info", true);
 
         try {
             const [counterRes, receiverRes, modelRes, colorRes] = await Promise.all([
@@ -120,45 +76,39 @@ const AdvanceReceiveForm = (() => {
             if (modelRes.status === 1) modelDropdown.setOptions(modelRes.data);
             if (colorRes.status === 1) colorDropdown.setOptions(colorRes.data);
 
-            statusEl.textContent = "";
-            statusEl.className   = "";
+            setStatus(statusEl);
         } catch (err) {
-            statusEl.textContent = "Error fetching dropdown values.";
-            statusEl.className   = "error";
+            setStatus(statusEl, "Error fetching dropdown values.", "error");
             console.error("[getDropdown]", err);
         }
 
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
-            statusEl.textContent = "";
-            statusEl.className   = "";
+            setStatus(statusEl);
 
-            const advancer_name           = nameInput.value.trim();
-            const mobile_number          = mobileInput.value.trim();
+            const advancer_name = nameInput.value.trim();
+            const mobile_number = mobileInput.value.trim();
             const alternate_mobile_number = altMobileInput.value.trim();
-            const amount                 = amountInput.value.trim();
-            const counter                = counterDropdown.getValue();
-            const receiver_name          = receiverDropdown.getValue();
-            const model                  = modelDropdown.getValue();
-            const color                  = colorDropdown.getValue();
-            const remark                 = remarkInput.value.trim();
+            const amount = amountInput.value.trim();
+            const counter = counterDropdown.getValue();
+            const receiver_name = receiverDropdown.getValue();
+            const model = modelDropdown.getValue();
+            const color = colorDropdown.getValue();
+            const remark = remarkInput.value.trim();
 
             if (!advancer_name || !mobile_number || !amount || !counter || !receiver_name || !model) {
-                statusEl.textContent = "All mandatory fields (*) are required.";
-                statusEl.className   = "error";
+                setStatus(statusEl, "All mandatory fields (*) are required.", "error");
                 return;
             }
 
             const phoneRegex = /^[0-9]{10}$/;
             if (!phoneRegex.test(mobile_number)) {
-                statusEl.textContent = "Please enter a valid 10-digit Mobile Number.";
-                statusEl.className   = "error";
+                setStatus(statusEl, "Please enter a valid 10-digit Mobile Number.", "error");
                 return;
             }
 
             if (alternate_mobile_number && !phoneRegex.test(alternate_mobile_number)) {
-                statusEl.textContent = "Please enter a valid 10-digit Alternate Mobile Number.";
-                statusEl.className   = "error";
+                setStatus(statusEl, "Please enter a valid 10-digit Alternate Mobile Number.", "error");
                 return;
             }
 
@@ -175,22 +125,18 @@ const AdvanceReceiveForm = (() => {
             };
 
             submitButton.disabled = true;
-            statusEl.textContent  = "Submitting...";
-            statusEl.className    = "info";
+            setStatus(statusEl, "Submitting...", "info", true);
 
             try {
                 const res = await backendRequest("advanceReceiveForm", payload);
                 if (res.status === 1) {
-                    statusEl.textContent = "Advance received successfully. Refreshing...";
-                    statusEl.className   = "success";
+                    setStatus(statusEl, "Advance received successfully. Refreshing...", "success");
                     setTimeout(() => window.location.reload(), 1500);
                 } else {
-                    statusEl.textContent = res.message || "Submission failed.";
-                    statusEl.className   = "error";
+                    setStatus(statusEl, res.message || "Submission failed.", "error");
                 }
             } catch (err) {
-                statusEl.textContent = "Network error. Please try again.";
-                statusEl.className   = "error";
+                setStatus(statusEl, "Network error. Please try again.", "error");
                 console.error("[advanceReceiveForm]", err);
             } finally {
                 submitButton.disabled = false;
