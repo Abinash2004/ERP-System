@@ -1,3 +1,11 @@
+function normalizeFollowUpStatus(value) {
+  const status = normalize(value);
+  if (status === "OPEN" || status === "OPENED") return "OPENED";
+  if (status === "CLOSE" || status === "CLOSED") return "CLOSED";
+  if (status === "PURCHASED") return "PURCHASED";
+  return status;
+}
+
 // FETCH VALUES HANDLER
 function getOpeningBalance(data) {
   if (!data || !data.branch) {
@@ -106,7 +114,7 @@ function newWalkInForm(data) {
     "ALTERNATE MOBILE NUMBER": normalize(data.alternateMobileNumber),
     "ADDRESS": normalize(data.address),
     "VEHICLE DETAILS": normalize(data.vehicleDetails),
-    "STATUS": "OPEN"
+    "STATUS": "OPENED"
   };
   
   const requiredFields = [
@@ -147,7 +155,7 @@ function getFollowUpList(data) {
   const locationCol = FOLLOW_UP["LOCATION"];
   const statusCol = FOLLOW_UP["STATUS"];
   const targetBranch = normalize(data.branch);
-  const targetStatus = normalize(data.status);
+  const targetStatus = normalizeFollowUpStatus(data.status);
   const filterByStatus = targetStatus && targetStatus !== "ALL";
 
   const locationValues = sheet.getRange(2, locationCol, lastRow - 1, 1).getValues();
@@ -156,7 +164,7 @@ function getFollowUpList(data) {
   const matchingRowIndexes = [];
   for (let i = 0; i < locationValues.length; i++) {
     const locationMatch = normalize(locationValues[i][0]) === targetBranch;
-    const statusMatch = !filterByStatus || normalize(statusValues[i][0]) === targetStatus;
+    const statusMatch = !filterByStatus || normalizeFollowUpStatus(statusValues[i][0]) === targetStatus;
     if (locationMatch && statusMatch) {
       matchingRowIndexes.push(i + 2);
     }
@@ -223,7 +231,7 @@ function updateFollowUpForm(data) {
     "ALTERNATE MOBILE NUMBER": normalize(data.alternateMobileNumber),
     "ADDRESS": normalize(data.address),
     "VEHICLE DETAILS": normalize(data.vehicleDetails),
-    "STATUS": normalize(data.status),
+    "STATUS": normalizeFollowUpStatus(data.status),
     "REMARKS": normalize(data.remarks)
   };
 

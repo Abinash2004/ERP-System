@@ -8,10 +8,16 @@ const COL = {
     VISIT_DATE: 1,
     CUSTOMER_NAME: 3,
     MOBILE_NUMBER: 4,
-    STATUS: 8,
-    FIRST_FEEDBACK: 11,
-    LAST_FEEDBACK: 13
+    STATUS: 8
 };
+
+function normalizeFollowUpStatus(value) {
+    const status = String(value || "").trim().toUpperCase();
+    if (status === "OPEN" || status === "OPENED") return "OPENED";
+    if (status === "CLOSE" || status === "CLOSED") return "CLOSED";
+    if (status === "PURCHASED") return "PURCHASED";
+    return "OPENED";
+}
 
 const FollowUpList = (() => {
 
@@ -22,8 +28,8 @@ const FollowUpList = (() => {
 
         function showList() {
             container.innerHTML = `
-                <section class="ui-table-card">
-                    ${panelHeader("Follow Up Customer List", '<select id="fup-status-filter" class="ui-select"><option value="ALL">All</option><option value="OPEN">Open</option><option value="CLOSE">Close</option><option value="PURCHASED">Purchased</option></select>')}
+                <section class="ui-table-card ui-table-card--tight">
+                    ${panelHeader("Follow Up Customer List", '<select id="fup-status-filter" class="ui-select ui-select--compact"><option value="ALL">All</option><option value="OPENED">Opened</option><option value="CLOSED">Closed</option><option value="PURCHASED">Purchased</option></select>')}
                     <div id="fup-status" class="ui-status" role="status" aria-live="polite"></div>
                     <div class="ui-table-scroll">
                         <table class="ui-table" id="follow-up-table">
@@ -33,7 +39,6 @@ const FollowUpList = (() => {
                                     <th>Customer Name</th>
                                     <th>Mobile Number</th>
                                     <th>Follow Up Status</th>
-                                    <th>Feedback Status</th>
                                 </tr>
                             </thead>
                             <tbody id="follow-up-tbody"></tbody>
@@ -77,31 +82,25 @@ const FollowUpList = (() => {
                     hasMore = rows.length === LIMIT;
 
                     if (rows.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="5">No records found.</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="4">No records found.</td></tr>';
                     } else {
                         rows.forEach(row => {
                             const tr = document.createElement("tr");
                             tr.className = "ui-table-row";
                             const rawDate = row[COL.VISIT_DATE];
                             const visitDate = rawDate ? new Date(rawDate).toLocaleDateString() : "";
-                            const hasFirst = !!row[COL.FIRST_FEEDBACK];
-                            const hasLast = !!row[COL.LAST_FEEDBACK];
-
-                            let feedbackStatus = '<span class="ui-badge">First Feedback Pending</span>';
-                            if (hasFirst && hasLast) {
-                                feedbackStatus = '<span class="ui-badge is-success">Both Feedback Given</span>';
-                            } else if (hasFirst && !hasLast) {
-                                feedbackStatus = '<span class="ui-badge is-partial">Last Feedback Pending</span>';
-                            }
-
-                            const followUpStatus = row[COL.STATUS] || "OPEN";
+                            const followUpStatus = normalizeFollowUpStatus(row[COL.STATUS]);
+                            const statusVariant = followUpStatus === "PURCHASED"
+                                ? "success"
+                                : followUpStatus === "CLOSED"
+                                    ? "danger"
+                                    : "warning";
 
                             tr.innerHTML = `
                                 <td>${visitDate}</td>
                                 <td>${row[COL.CUSTOMER_NAME] || ""}</td>
                                 <td>${row[COL.MOBILE_NUMBER] || ""}</td>
-                                <td>${followUpStatus}</td>
-                                <td>${feedbackStatus}</td>
+                                <td><span class="ui-follow-status ui-follow-status--${statusVariant}">${followUpStatus}</span></td>
                             `;
                             tr.addEventListener("click", () => showForm(row));
                             tbody.appendChild(tr);
@@ -157,3 +156,4 @@ const FollowUpList = (() => {
 })();
 
 export { FollowUpList };
+

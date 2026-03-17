@@ -1,11 +1,13 @@
 import { backendRequest } from "../api/index.js";
 import { setSession } from "../services/session.js";
-import { renderLoginLayout, setStatus } from "../components/ui.js";
+import { renderLoginLayout, setStatus, setupFormValidation } from "../components/ui.js";
 
 export function renderLogin() {
     document.getElementById("app").innerHTML = renderLoginLayout();
+    const form = document.getElementById("login-form");
+    setupFormValidation(form);
 
-    document.getElementById("login-form").addEventListener("submit", async (e) => {
+    form.addEventListener("submit", async (e) => {
         e.preventDefault();
         const passcode = document.getElementById("passcode").value.trim();
         const errorEl = document.getElementById("login-error");

@@ -1,6 +1,6 @@
 import { backendRequest } from "../../api/index.js";
 import { SearchableDropdown } from "../SearchableDropdown.js";
-import { createFormLayout, field, formActions, setStatus } from "../ui.js";
+import { createFormLayout, field, formActions, setStatus, setupFormValidation } from "../ui.js";
 
 const MODEL_COL = 1;
 const COLOR_COL = 2;
@@ -17,8 +17,8 @@ const AddStockForm = (() => {
             id: "add-stock-form",
             title: "Add Stock Form",
             body: `
-                ${field("Chassis Number", '<input id="as-chassis" class="ui-input" type="text" placeholder="Enter chassis number" />', { required: true })}
-                ${field("Engine Number", '<input id="as-engine" class="ui-input" type="text" placeholder="Enter engine number" />', { required: true })}
+                ${field("Chassis Number", '<input id="as-chassis" class="ui-input" type="text" placeholder="Enter chassis number" required />', { required: true })}
+                ${field("Engine Number", '<input id="as-engine" class="ui-input" type="text" placeholder="Enter engine number" required />', { required: true })}
                 ${field("Model", '<div id="as-model-container"></div>', { required: true })}
                 ${field("Color", '<div id="as-color-container"></div>', { required: true })}
                 ${field("Current Counter", '<div id="as-counter-container"></div>', { required: true })}
@@ -36,18 +36,23 @@ const AddStockForm = (() => {
 
         modelDropdown = SearchableDropdown.mount(container.querySelector("#as-model-container"), {
             options: [],
-            placeholder: "Select model..."
+            placeholder: "Select model...",
+            required: true
         });
 
         colorDropdown = SearchableDropdown.mount(container.querySelector("#as-color-container"), {
             options: [],
-            placeholder: "Select color..."
+            placeholder: "Select color...",
+            required: true
         });
 
         counterDropdown = SearchableDropdown.mount(container.querySelector("#as-counter-container"), {
             options: [],
-            placeholder: "Select counter..."
+            placeholder: "Select counter...",
+            required: true
         });
+
+        setupFormValidation(form);
 
         setStatus(statusEl, "Fetching dropdown values...", "info", true);
 

@@ -1,6 +1,6 @@
 import { backendRequest } from "../../api/index.js";
 import { SearchableDropdown } from "../SearchableDropdown.js";
-import { createFormLayout, field, formActions, setStatus } from "../ui.js";
+import { createFormLayout, field, formActions, setStatus, setupFormValidation } from "../ui.js";
 
 const CHASSIS_COL = 11;
 
@@ -14,9 +14,9 @@ const AddInvoiceForm = (() => {
             title: "Add Invoice Form",
             body: `
                 ${field("Chassis Number", '<div id="ai-chassis-container"></div>', { required: true })}
-                ${field("Invoice Date", '<input id="ai-date" class="ui-input" type="date" />', { required: true })}
-                ${field("Purchased Invoice Number", '<input id="ai-invoice" class="ui-input" type="text" placeholder="Enter invoice number" />', { required: true })}
-                ${field("Gross Value Before Discount", '<input id="ai-gvbd" class="ui-input" type="number" step="0.01" placeholder="Enter gross value" />', { required: true })}
+                ${field("Invoice Date", '<input id="ai-date" class="ui-input" type="date" required />', { required: true })}
+                ${field("Purchased Invoice Number", '<input id="ai-invoice" class="ui-input" type="text" placeholder="Enter invoice number" required />', { required: true })}
+                ${field("Gross Value Before Discount", '<input id="ai-gvbd" class="ui-input" type="number" step="0.01" placeholder="Enter gross value" required />', { required: true })}
                 ${formActions("ai-submit", "ai-status")}
             `
         });
@@ -30,8 +30,11 @@ const AddInvoiceForm = (() => {
 
         chassisDropdown = SearchableDropdown.mount(container.querySelector("#ai-chassis-container"), {
             options: [],
-            placeholder: "Select chassis number..."
+            placeholder: "Select chassis number...",
+            required: true
         });
+
+        setupFormValidation(form);
 
         setStatus(statusEl, "Fetching chassis numbers...", "info", true);
 

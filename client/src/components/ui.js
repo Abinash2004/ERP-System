@@ -2,7 +2,17 @@ function escapeAttribute(value = "") {
     return String(value).replace(/"/g, "&quot;");
 }
 
-export function renderSidebarLayout({ pageId, sidebarTitle, listId, contentId, emptyText }) {
+export function renderWelcomeState(titleHtml = "") {
+    return `
+        <div class="ui-welcome-state">
+            <p class="ui-welcome-state__eyebrow">Welcome</p>
+            <h2 class="ui-welcome-state__title">${titleHtml}</h2>
+            <p class="ui-welcome-state__copy">Select a task from the sidebar.</p>
+        </div>
+    `;
+}
+
+export function renderSidebarLayout({ pageId, sidebarTitle, listId, contentId, emptyContent }) {
     return `
         <div id="${pageId}" class="app-shell">
             <aside class="app-sidebar">
@@ -11,11 +21,11 @@ export function renderSidebarLayout({ pageId, sidebarTitle, listId, contentId, e
                 </div>
                 <ul id="${listId}" class="app-nav"></ul>
                 <div class="app-sidebar__footer">
-                    <button id="logout" class="ui-button ui-button--ghost" type="button">Logout</button>
+                    <button id="logout" class="ui-button ui-button--block" type="button">Logout</button>
                 </div>
             </aside>
             <main id="${contentId}" class="app-content">
-                <div class="ui-empty-state">${emptyText}</div>
+                ${emptyContent}
             </main>
         </div>
     `;
@@ -25,14 +35,14 @@ export function renderLoginLayout() {
     return `
         <div class="login-shell">
             <form id="login-form" class="ui-form ui-form--compact" novalidate>
-                <div class="ui-card ui-card--auth">
-                    <div class="ui-card-header">
-                        <p class="ui-eyebrow">Retail Management</p>
-                        <h1 class="ui-card-title">Login</h1>
-                        <p class="ui-card-copy">Enter the passcode to continue.</p>
+                <div class="ui-card ui-card--auth ui-card--login">
+                    <div class="ui-card-header ui-card-header--login">
+                        <p class="ui-eyebrow">ENTERPRISE RESOURCE PLANNING SYSTEM</p>
+                        <h1 class="ui-card-title ui-card-title--login">LOGIN</h1>
+                        <p class="ui-card-copy ui-card-copy--login">Enter your passcode to continue.</p>
                     </div>
-                    <div class="ui-form-grid ui-form-grid--single">
-                        ${field("Passcode", '<input id="passcode" class="ui-input" type="password" placeholder="Enter passcode" autocomplete="off" />', { required: true, full: true })}
+                    <div class="ui-form-grid ui-form-grid--single ui-form-grid--login">
+                        ${field("Passcode", '<input id="passcode" class="ui-input" type="password" placeholder="Enter passcode" autocomplete="off" required />', { required: true, full: true })}
                         ${formActions("login-submit", "login-error", "Login")}
                     </div>
                 </div>
@@ -85,6 +95,67 @@ export function formActions(submitId, statusId, submitLabel = "Submit", disabled
     `;
 }
 
+function isFieldVisible(field) {
+    const target = field.classList.contains("ui-validation-proxy")
+        ? field.closest(".sd-wrapper") || field
+        : field;
+
+    return !!target && target.getClientRects().length > 0 && getComputedStyle(target).visibility !== "hidden";
+}
+
+function isFieldValid(field) {
+    if (!isFieldVisible(field) || field.disabled) {
+        return true;
+    }
+
+    return field.value.trim() !== "";
+}
+
+function syncBusyState(element, loading) {
+    const form = element?.closest("form");
+    if (!form) return;
+
+    const wasLoading = element.dataset.loading === "true";
+    const currentCount = Number(form.dataset.busyCount || 0);
+
+    if (loading && !wasLoading) {
+        element.dataset.loading = "true";
+        form.dataset.busyCount = String(currentCount + 1);
+    } else if (!loading && wasLoading) {
+        element.dataset.loading = "false";
+        const nextCount = Math.max(currentCount - 1, 0);
+        if (nextCount > 0) {
+            form.dataset.busyCount = String(nextCount);
+        } else {
+            delete form.dataset.busyCount;
+        }
+    }
+
+    form.__updateSubmitState?.();
+}
+
+export function setupFormValidation(form) {
+    if (!form) return;
+
+    const submitButton = form.querySelector('button[type="submit"]');
+    if (!submitButton) return;
+
+    const getRequiredFields = () => Array.from(form.querySelectorAll("[required], .required-field"));
+
+    const updateSubmitState = () => {
+        const isBusy = Number(form.dataset.busyCount || 0) > 0;
+        const isValid = !isBusy && getRequiredFields().every(isFieldValid);
+        submitButton.disabled = !isValid;
+    };
+
+    form.__updateSubmitState = updateSubmitState;
+    form.addEventListener("input", updateSubmitState);
+    form.addEventListener("change", updateSubmitState);
+    updateSubmitState();
+
+    return { updateSubmitState };
+}
+
 export function panelHeader(title, actions = "") {
     return `
         <div class="ui-panel-header">
@@ -97,6 +168,7 @@ export function panelHeader(title, actions = "") {
 export function setStatus(element, text = "", type = "", loading = false) {
     if (!element) return;
 
+    syncBusyState(element, loading);
     element.className = "ui-status";
     element.replaceChildren();
 
@@ -122,3 +194,6 @@ export function setStatus(element, text = "", type = "", loading = false) {
 export function createOption(value, label = value, selected = false) {
     return `<option value="${escapeAttribute(value)}"${selected ? " selected" : ""}>${label}</option>`;
 }
+
+
+

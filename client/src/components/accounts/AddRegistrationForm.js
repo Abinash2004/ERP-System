@@ -1,6 +1,6 @@
 import { backendRequest } from "../../api/index.js";
 import { SearchableDropdown } from "../SearchableDropdown.js";
-import { createFormLayout, field, formActions, setStatus } from "../ui.js";
+import { createFormLayout, field, formActions, setStatus, setupFormValidation } from "../ui.js";
 
 const CHASSIS_COL = 13;
 
@@ -14,7 +14,7 @@ const AddRegistrationForm = (() => {
             title: "Add Registration Form",
             body: `
                 ${field("Chassis Number", '<div id="ar-chassis-container"></div>', { required: true })}
-                ${field("Registration Number", '<input id="ar-registration-number" class="ui-input" type="text" placeholder="Enter registration number" />', { required: true })}
+                ${field("Registration Number", '<input id="ar-registration-number" class="ui-input" type="text" placeholder="Enter registration number" required />', { required: true })}
                 ${formActions("ar-submit", "ar-status")}
             `
         });
@@ -26,8 +26,11 @@ const AddRegistrationForm = (() => {
 
         chassisDropdown = SearchableDropdown.mount(container.querySelector("#ar-chassis-container"), {
             options: [],
-            placeholder: "Select chassis number..."
+            placeholder: "Select chassis number...",
+            required: true
         });
+
+        setupFormValidation(form);
 
         setStatus(statusEl, "Fetching chassis numbers...", "info", true);
         try {

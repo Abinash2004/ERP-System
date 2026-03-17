@@ -1,6 +1,6 @@
 import { backendRequest } from "../../api/index.js";
 import { SearchableDropdown } from "../SearchableDropdown.js";
-import { createFormLayout, createOption, field, formActions, setStatus } from "../ui.js";
+import { createFormLayout, createOption, field, formActions, setStatus, setupFormValidation } from "../ui.js";
 
 const COLS = {
     KEY_NUMBER: 14,
@@ -23,26 +23,26 @@ const OptionalFieldForm = (() => {
             id: "optional-field-form",
             title: "Optional Field Form",
             body: `
-                ${field("Optional Field", `<select id="off-type" class="ui-select">${createOption("", "Select type...", true)}${createOption("1", "Key Number")}${createOption("2", "Customer Alternate Mobile Number")}${createOption("3", "Estimated Disbursement")}${createOption("4", "Advancer Alternate Mobile Number")}</select>`, { required: true, full: true })}
+                ${field("Optional Field", `<select id="off-type" class="ui-select" required>${createOption("", "Select type...", true)}${createOption("1", "Key Number")}${createOption("2", "Customer Alternate Mobile Number")}${createOption("3", "Estimated Disbursement")}${createOption("4", "Advancer Alternate Mobile Number")}</select>`, { required: true, full: true })}
                 <div id="section-1" class="off-section">
                     ${field("Chassis Number", '<div id="off-chassis-1"></div>', { required: true })}
                     ${field("Model", '<input id="off-model-1" class="ui-input ui-readonly" type="text" readonly placeholder="Auto-fetched" />')}
                     ${field("Color", '<input id="off-color-1" class="ui-input ui-readonly" type="text" readonly placeholder="Auto-fetched" />')}
-                    ${field("Key Number", '<input id="off-key-val" class="ui-input" type="text" placeholder="Enter key number" />', { required: true })}
+                    ${field("Key Number", '<input id="off-key-val" class="ui-input" type="text" placeholder="Enter key number" required />', { required: true })}
                 </div>
                 <div id="section-2" class="off-section">
                     ${field("Chassis Number", '<div id="off-chassis-2"></div>', { required: true })}
                     ${field("Customer Name", '<input id="off-customer-2" class="ui-input ui-readonly" type="text" readonly placeholder="Auto-fetched" />')}
-                    ${field("Customer Alternate Mobile Number", '<input id="off-cust-mobile-val" class="ui-input" type="tel" maxlength="10" placeholder="10-digit number" oninput="this.value = this.value.replace(/[^0-9]/g, \"\")" />', { required: true })}
+                    ${field("Customer Alternate Mobile Number", '<input id="off-cust-mobile-val" class="ui-input" type="tel" maxlength="10" placeholder="10-digit number" oninput="this.value = this.value.replace(/[^0-9]/g, \"\")" required />', { required: true })}
                 </div>
                 <div id="section-3" class="off-section">
                     ${field("Chassis Number", '<div id="off-chassis-3"></div>', { required: true })}
                     ${field("Customer Name", '<input id="off-customer-3" class="ui-input ui-readonly" type="text" readonly placeholder="Auto-fetched" />')}
-                    ${field("Estimated Disbursement", '<input id="off-est-disb-val" class="ui-input" type="number" placeholder="Enter amount" />', { required: true })}
+                    ${field("Estimated Disbursement", '<input id="off-est-disb-val" class="ui-input" type="number" placeholder="Enter amount" required />', { required: true })}
                 </div>
                 <div id="section-4" class="off-section">
                     ${field("Advancer Name", '<div id="off-adv-name-4"></div>', { required: true })}
-                    ${field("Advancer Alternate Mobile Number", '<input id="off-adv-mobile-val" class="ui-input" type="tel" maxlength="10" placeholder="10-digit number" oninput="this.value = this.value.replace(/[^0-9]/g, \"\")" />', { required: true })}
+                    ${field("Advancer Alternate Mobile Number", '<input id="off-adv-mobile-val" class="ui-input" type="tel" maxlength="10" placeholder="10-digit number" oninput="this.value = this.value.replace(/[^0-9]/g, \"\")" required />', { required: true })}
                 </div>
                 ${formActions("off-submit", "off-status", "Submit", true)}
             `
@@ -69,56 +69,75 @@ const OptionalFieldForm = (() => {
 
         dropdowns.keyChassis = SearchableDropdown.mount(container.querySelector("#off-chassis-1"), {
             placeholder: "Select chassis number...",
+            required: true,
             onChange: async (val) => {
                 if (!val) { inputs[1].model.value = ""; inputs[1].color.value = ""; return; }
                 inputs[1].model.value = "Fetching...";
                 inputs[1].color.value = "Fetching...";
+                setStatus(statusEl, "Fetching chassis details...", "info", true);
                 try {
                     const res = await backendRequest("getChassis", val);
                     if (res.status === 1) {
                         inputs[1].model.value = res.data.model || "N/A";
                         inputs[1].color.value = res.data.color || "N/A";
                     }
-                } catch (e) { console.error(e); }
+                    setStatus(statusEl);
+                } catch (e) {
+                    setStatus(statusEl, "Error fetching chassis details.", "error");
+                    console.error(e);
+                }
             }
         });
 
         dropdowns.custChassis = SearchableDropdown.mount(container.querySelector("#off-chassis-2"), {
             placeholder: "Select chassis number...",
+            required: true,
             onChange: async (val) => {
                 if (!val) { inputs[2].customer.value = ""; return; }
                 inputs[2].customer.value = "Fetching...";
+                setStatus(statusEl, "Fetching chassis details...", "info", true);
                 try {
                     const res = await backendRequest("getChassis", val);
                     if (res.status === 1) { inputs[2].customer.value = res.data.customer || "N/A"; }
-                } catch (e) { console.error(e); }
+                    setStatus(statusEl);
+                } catch (e) {
+                    setStatus(statusEl, "Error fetching chassis details.", "error");
+                    console.error(e);
+                }
             }
         });
 
         dropdowns.estChassis = SearchableDropdown.mount(container.querySelector("#off-chassis-3"), {
             placeholder: "Select chassis number...",
+            required: true,
             onChange: async (val) => {
                 if (!val) { inputs[3].customer.value = ""; return; }
                 inputs[3].customer.value = "Fetching...";
+                setStatus(statusEl, "Fetching chassis details...", "info", true);
                 try {
                     const res = await backendRequest("getChassis", val);
                     if (res.status === 1) { inputs[3].customer.value = res.data.customer || "N/A"; }
-                } catch (e) { console.error(e); }
+                    setStatus(statusEl);
+                } catch (e) {
+                    setStatus(statusEl, "Error fetching chassis details.", "error");
+                    console.error(e);
+                }
             }
         });
 
         dropdowns.advName = SearchableDropdown.mount(container.querySelector("#off-adv-name-4"), {
-            placeholder: "Select advancer name..."
+            placeholder: "Select advancer name...",
+            required: true
         });
+
+        setupFormValidation(form);
 
         typeSelect.addEventListener("change", () => {
             Object.values(sections).forEach(s => s.classList.remove("visible"));
             const code = typeSelect.value;
             if (code && sections[code]) {
                 sections[code].classList.add("visible");
-                submitButton.disabled = false;
             } else {
-                submitButton.disabled = true;
             }
             setStatus(statusEl);
         });

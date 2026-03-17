@@ -1,6 +1,6 @@
 import { backendRequest } from "../../api/index.js";
 import { SearchableDropdown } from "../SearchableDropdown.js";
-import { createFormLayout, createOption, field, formActions, setStatus } from "../ui.js";
+import { createFormLayout, createOption, field, formActions, setStatus, setupFormValidation } from "../ui.js";
 
 const COLS = {
     ADV_REC: 18,
@@ -39,7 +39,7 @@ const VerifyTransactionForm = (() => {
             id: "verify-transaction-form",
             title: "Verify Transaction Form",
             body: `
-                ${field("Transaction Field", `<select id="vtf-type" class="ui-select">${createOption("", "Select type...", true)}${createOption("1", "Advance Received")}${createOption("2", "Advance Returned")}${createOption("3", "Received Down Payment")}${createOption("4", "Insurance Amount")}${createOption("5", "RTO Amount")}${createOption("6", "Disbursement Amount")}${createOption("7", "Exchange Amount")}</select>`, { required: true, full: true })}
+                ${field("Transaction Field", `<select id="vtf-type" class="ui-select" required>${createOption("", "Select type...", true)}${createOption("1", "Advance Received")}${createOption("2", "Advance Returned")}${createOption("3", "Received Down Payment")}${createOption("4", "Insurance Amount")}${createOption("5", "RTO Amount")}${createOption("6", "Disbursement Amount")}${createOption("7", "Exchange Amount")}</select>`, { required: true, full: true })}
                 <div id="vtf-section-1" class="vtf-section">
                     ${field("Advancer Name", '<div id="vtf-adv-rec-name"></div>', { required: true })}
                     ${field("Advance Received Amount", '<input id="vtf-adv-rec-amt" class="ui-input ui-readonly" type="text" readonly placeholder="Auto-fetched" />')}
@@ -92,76 +92,93 @@ const VerifyTransactionForm = (() => {
             if (!val) { custEl.value = ""; if (amtEl) amtEl.value = ""; return; }
             custEl.value = "Fetching...";
             if (amtEl) amtEl.value = "Fetching...";
+            setStatus(statusEl, "Fetching chassis details...", "info", true);
             try {
                 const res = await backendRequest("getChassis", val);
                 if (res.status === 1) {
                     custEl.value = res.data.customer || "N/A";
                     if (amtEl) amtEl.value = res.data.receivedDP || "0";
                 }
-            } catch (e) { console.error(e); }
+                setStatus(statusEl);
+            } catch (e) {
+                setStatus(statusEl, "Error fetching chassis details.", "error");
+                console.error(e);
+            }
         }
 
         async function fetchAdvancerData(val, amtEl, isReturn = false) {
             if (!val) { amtEl.value = ""; return; }
             amtEl.value = "Fetching...";
+            setStatus(statusEl, "Fetching advance details...", "info", true);
             try {
                 const res = await backendRequest("getAdvance", val);
                 if (res.status === 1) {
                     amtEl.value = (isReturn ? res.data.returnAmount : res.data.amount) || "0";
                 }
-            } catch (e) { console.error(e); }
+                setStatus(statusEl);
+            } catch (e) {
+                setStatus(statusEl, "Error fetching advance details.", "error");
+                console.error(e);
+            }
         }
 
         dropdowns.advRecName = SearchableDropdown.mount(container.querySelector("#vtf-adv-rec-name"), {
             placeholder: "Select advancer...",
+            required: true,
             onChange: (val) => fetchAdvancerData(val, container.querySelector("#vtf-adv-rec-amt"))
         });
-        dropdowns.advRecCode = SearchableDropdown.mount(container.querySelector("#vtf-adv-rec-code"), { placeholder: "Select code..." });
+        dropdowns.advRecCode = SearchableDropdown.mount(container.querySelector("#vtf-adv-rec-code"), { placeholder: "Select code...", required: true });
 
         dropdowns.advRetName = SearchableDropdown.mount(container.querySelector("#vtf-adv-ret-name"), {
             placeholder: "Select advancer...",
+            required: true,
             onChange: (val) => fetchAdvancerData(val, container.querySelector("#vtf-adv-ret-amt"), true)
         });
-        dropdowns.advRetCode = SearchableDropdown.mount(container.querySelector("#vtf-adv-ret-code"), { placeholder: "Select code..." });
+        dropdowns.advRetCode = SearchableDropdown.mount(container.querySelector("#vtf-adv-ret-code"), { placeholder: "Select code...", required: true });
 
         dropdowns.dpChassis = SearchableDropdown.mount(container.querySelector("#vtf-dp-chassis"), {
             placeholder: "Select chassis...",
+            required: true,
             onChange: (val) => fetchChassisData(val, container.querySelector("#vtf-dp-cust"), container.querySelector("#vtf-dp-amt"))
         });
-        dropdowns.dpCode = SearchableDropdown.mount(container.querySelector("#vtf-dp-code"), { placeholder: "Select code..." });
+        dropdowns.dpCode = SearchableDropdown.mount(container.querySelector("#vtf-dp-code"), { placeholder: "Select code...", required: true });
 
         dropdowns.insChassis = SearchableDropdown.mount(container.querySelector("#vtf-ins-chassis"), {
             placeholder: "Select chassis...",
+            required: true,
             onChange: (val) => fetchChassisData(val, container.querySelector("#vtf-ins-cust"))
         });
-        dropdowns.insCode = SearchableDropdown.mount(container.querySelector("#vtf-ins-code"), { placeholder: "Select code..." });
+        dropdowns.insCode = SearchableDropdown.mount(container.querySelector("#vtf-ins-code"), { placeholder: "Select code...", required: true });
 
         dropdowns.rtoChassis = SearchableDropdown.mount(container.querySelector("#vtf-rto-chassis"), {
             placeholder: "Select chassis...",
+            required: true,
             onChange: (val) => fetchChassisData(val, container.querySelector("#vtf-rto-cust"))
         });
-        dropdowns.rtoCode = SearchableDropdown.mount(container.querySelector("#vtf-rto-code"), { placeholder: "Select code..." });
+        dropdowns.rtoCode = SearchableDropdown.mount(container.querySelector("#vtf-rto-code"), { placeholder: "Select code...", required: true });
 
         dropdowns.disbChassis = SearchableDropdown.mount(container.querySelector("#vtf-disb-chassis"), {
             placeholder: "Select chassis...",
+            required: true,
             onChange: (val) => fetchChassisData(val, container.querySelector("#vtf-disb-cust"))
         });
-        dropdowns.disbCode = SearchableDropdown.mount(container.querySelector("#vtf-disb-code"), { placeholder: "Select code..." });
+        dropdowns.disbCode = SearchableDropdown.mount(container.querySelector("#vtf-disb-code"), { placeholder: "Select code...", required: true });
 
         dropdowns.exchChassis = SearchableDropdown.mount(container.querySelector("#vtf-exch-chassis"), {
             placeholder: "Select chassis...",
+            required: true,
             onChange: (val) => fetchChassisData(val, container.querySelector("#vtf-exch-cust"))
         });
-        dropdowns.exchCode = SearchableDropdown.mount(container.querySelector("#vtf-exch-code"), { placeholder: "Select code..." });
+        dropdowns.exchCode = SearchableDropdown.mount(container.querySelector("#vtf-exch-code"), { placeholder: "Select code...", required: true });
+
+        setupFormValidation(form);
 
         typeSelect.addEventListener("change", () => {
             Object.values(sections).forEach(s => s.classList.remove("visible"));
             const code = typeSelect.value;
             if (code && sections[code]) {
                 sections[code].classList.add("visible");
-                submitButton.disabled = false;
             } else {
-                submitButton.disabled = true;
             }
             setStatus(statusEl);
         });

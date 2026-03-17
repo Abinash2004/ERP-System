@@ -2,7 +2,7 @@ import { clearSession } from "../services/session.js";
 import { DailyTransactionForm } from "../components/showroom/DailyTransactionForm.js";
 import { NewWalkInForm } from "../components/showroom/NewWalkInForm.js";
 import { FollowUpList } from "../components/showroom/FollowUpList.js";
-import { renderSidebarLayout } from "../components/ui.js";
+import { renderSidebarLayout, renderWelcomeState } from "../components/ui.js";
 
 const FORMS = [
     { label: "Daily Transaction", component: DailyTransactionForm },
@@ -13,10 +13,10 @@ const FORMS = [
 export function renderShowroom(session) {
     document.getElementById("app").innerHTML = renderSidebarLayout({
         pageId: "showroom-page",
-        sidebarTitle: "Showroom",
+        sidebarTitle: "Showroom Tasks",
         listId: "form-list",
         contentId: "showroom-content",
-        emptyText: "Select a form from the sidebar."
+        emptyContent: renderWelcomeState(`<span class="ui-welcome-state__accent">${session.branch}</span> Team`)
     });
 
     const formList = document.getElementById("form-list");

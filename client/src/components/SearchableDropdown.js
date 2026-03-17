@@ -1,6 +1,6 @@
 const SearchableDropdown = (() => {
 
-    function mount(container, { options = [], placeholder = "Select...", onChange = null } = {}) {
+    function mount(container, { options = [], placeholder = "Select...", onChange = null, required = false } = {}) {
         let currentOptions = [...options];
         let selectedValue = "";
         let isOpen = false;
@@ -15,12 +15,28 @@ const SearchableDropdown = (() => {
         input.autocomplete = "off";
         input.className = "sd-input";
 
+        const proxyInput = document.createElement("input");
+        proxyInput.type = "text";
+        proxyInput.className = "ui-validation-proxy";
+        proxyInput.tabIndex = -1;
+        proxyInput.setAttribute("aria-hidden", "true");
+        if (required) {
+            proxyInput.classList.add("required-field");
+        }
+
         const list = document.createElement("ul");
         list.className = "sd-list";
 
         wrapper.appendChild(input);
+        wrapper.appendChild(proxyInput);
         wrapper.appendChild(list);
         container.appendChild(wrapper);
+
+        function syncProxy(value) {
+            proxyInput.value = value;
+            proxyInput.dispatchEvent(new Event("input", { bubbles: true }));
+            proxyInput.dispatchEvent(new Event("change", { bubbles: true }));
+        }
 
         function getVisibleItems() {
             return Array.from(list.querySelectorAll("li:not(.sd-no-results)"));
@@ -86,6 +102,7 @@ const SearchableDropdown = (() => {
         function select(value) {
             selectedValue = value;
             input.value = value;
+            syncProxy(value);
             closeList();
             if (typeof onChange === "function") onChange(value);
         }
@@ -145,11 +162,13 @@ const SearchableDropdown = (() => {
             setValue(value) {
                 selectedValue = value;
                 input.value = value;
+                syncProxy(value);
             },
             setOptions(newOptions) {
                 currentOptions = [...newOptions];
                 selectedValue = "";
                 input.value = "";
+                syncProxy("");
                 highlightedIndex = -1;
                 if (isOpen) renderList();
             }

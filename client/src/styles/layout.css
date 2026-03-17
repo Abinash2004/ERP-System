@@ -9,7 +9,7 @@
     flex-direction: column;
     gap: var(--space-5);
     padding: 28px 18px 24px;
-    background: var(--surface);
+    background: var(--panel);
     border-right: 1px solid var(--border);
 }
 
@@ -17,13 +17,15 @@
     display: flex;
     align-items: center;
     min-height: 36px;
-    padding: 0 6px;
+    padding: 0 6px var(--space-5);
+    border-bottom: 1px solid var(--border);
 }
 
 .app-sidebar__title {
     font-size: 22px;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: -0.02em;
+    color: var(--dark);
 }
 
 .app-sidebar__footer {
@@ -47,7 +49,7 @@
     display: grid;
     min-height: 100vh;
     place-items: center;
-    padding: 32px 24px;
+    padding: 40px 24px;
 }
 
 .ui-card {
@@ -56,15 +58,20 @@
     gap: var(--space-5);
     width: min(100%, 980px);
     margin: 0 auto;
-    padding: 30px 32px;
-    background: var(--surface);
+    padding: 28px;
+    background: var(--panel);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
+    box-shadow: none;
 }
 
 .ui-card--auth {
-    width: min(100%, 440px);
+    width: min(100%, 460px);
+}
+
+.ui-card--login {
+    gap: 28px;
+    padding: 36px;
 }
 
 .ui-card-header {
@@ -89,7 +96,11 @@
 }
 
 .ui-form--compact {
-    width: min(100%, 440px);
+    width: min(100%, 460px);
+}
+
+.ui-form-grid--login {
+    row-gap: 18px;
 }
 
 .ui-panel-header {
@@ -97,7 +108,7 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--space-4);
-    margin-bottom: var(--space-5);
+    margin-bottom: var(--space-4);
 }
 
 @media (max-width: 960px) {
@@ -119,8 +130,14 @@
         padding: 24px 20px;
     }
 
+
+    .ui-card--login {
+        padding: 28px 22px;
+    }
     .ui-form-grid {
         grid-template-columns: minmax(0, 1fr);
         row-gap: 16px;
     }
 }
+
+

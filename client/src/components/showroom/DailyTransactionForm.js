@@ -1,6 +1,6 @@
 import { backendRequest } from "../../api/index.js";
 import { SearchableDropdown } from "../SearchableDropdown.js";
-import { createFormLayout, field, formActions, setStatus } from "../ui.js";
+import { createFormLayout, field, formActions, setStatus, setupFormValidation } from "../ui.js";
 
 const CASH_IN_COL = 7;
 const CASH_OUT_COL = 8;
@@ -11,6 +11,7 @@ const DailyTransactionForm = (() => {
 
     async function mount(container, session) {
         let openingBalance = 0;
+        let currentAction = "";
         const leisureCache = {};
         let actionDropdown = null;
         let leisureDropdown = null;
@@ -22,8 +23,8 @@ const DailyTransactionForm = (() => {
                 ${field("Opening Balance", '<input id="dt-opening-balance" class="ui-input ui-readonly" type="text" readonly value="Loading..." />', { full: true })}
                 ${field("Action", '<div id="dt-action-container"></div>', { required: true })}
                 ${field("Cash Leisure", '<div id="dt-leisure-container"></div>', { required: true })}
-                ${field("Amount", '<input id="dt-amount" class="ui-input" type="number" min="0" placeholder="Enter amount" />', { required: true })}
-                ${field("Remark", '<textarea id="dt-remark" class="ui-textarea" placeholder="Enter remark" rows="4"></textarea>', { required: true, full: true })}
+                ${field("Amount", '<input id="dt-amount" class="ui-input" type="number" min="0" placeholder="Enter amount" required />', { required: true })}
+                ${field("Remark", '<textarea id="dt-remark" class="ui-textarea" placeholder="Enter remark" rows="4" required></textarea>', { required: true, full: true })}
                 ${formActions("dt-submit", "dt-status")}
             `
         });
@@ -40,13 +41,17 @@ const DailyTransactionForm = (() => {
         actionDropdown = SearchableDropdown.mount(actionContainer, {
             options: ACTION_OPTIONS,
             placeholder: "Select action...",
-            onChange: handleActionChange
+            onChange: handleActionChange,
+            required: true
         });
 
         leisureDropdown = SearchableDropdown.mount(leisureContainer, {
             options: [],
-            placeholder: "Select leisure..."
+            placeholder: "Select leisure...",
+            required: true
         });
+
+        setupFormValidation(form);
 
         setStatus(statusEl, "Fetching balances and dropdowns...", "info", true);
 
@@ -66,12 +71,14 @@ const DailyTransactionForm = (() => {
 
         if (cashInRes.status === "fulfilled" && cashInRes.value.status === 1) {
             leisureCache[CASH_IN_COL] = cashInRes.value.data;
+            syncLeisureOptions();
         } else {
             console.error("[getDropdown col 7]", cashInRes.reason ?? cashInRes.value?.message);
         }
 
         if (cashOutRes.status === "fulfilled" && cashOutRes.value.status === 1) {
             leisureCache[CASH_OUT_COL] = cashOutRes.value.data;
+            syncLeisureOptions();
         } else {
             console.error("[getDropdown col 8]", cashOutRes.reason ?? cashOutRes.value?.message);
         }
@@ -79,7 +86,17 @@ const DailyTransactionForm = (() => {
         setStatus(statusEl, balanceRes.status === "fulfilled" || cashInRes.status === "fulfilled" || cashOutRes.status === "fulfilled" ? "" : "Unable to load form data.", balanceRes.status === "fulfilled" || cashInRes.status === "fulfilled" || cashOutRes.status === "fulfilled" ? "" : "error");
 
         function handleActionChange(action) {
-            const col = action === "CASH IN" ? CASH_IN_COL : CASH_OUT_COL;
+            currentAction = action;
+            syncLeisureOptions();
+        }
+
+        function syncLeisureOptions() {
+            if (!currentAction) {
+                leisureDropdown.setOptions([]);
+                return;
+            }
+
+            const col = currentAction === "CASH IN" ? CASH_IN_COL : CASH_OUT_COL;
             leisureDropdown.setOptions(leisureCache[col] ?? []);
         }
 

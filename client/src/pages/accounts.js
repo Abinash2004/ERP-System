@@ -9,7 +9,7 @@ import { AddSaleAccountForm } from "../components/accounts/AddSaleAccountForm.js
 import { AddRegistrationForm } from "../components/accounts/AddRegistrationForm.js";
 import { OptionalFieldForm } from "../components/accounts/OptionalFieldForm.js";
 import { VerifyTransactionForm } from "../components/accounts/VerifyTransactionForm.js";
-import { renderSidebarLayout } from "../components/ui.js";
+import { renderSidebarLayout, renderWelcomeState } from "../components/ui.js";
 
 const FORMS = [
     { label: "Add Stock Form", component: AddStockForm },
@@ -27,10 +27,10 @@ const FORMS = [
 export function renderAccounts(session) {
     document.getElementById("app").innerHTML = renderSidebarLayout({
         pageId: "accounts-page",
-        sidebarTitle: "Accounts",
+        sidebarTitle: "Account Tasks",
         listId: "accounts-form-list",
         contentId: "accounts-content",
-        emptyText: "Select a form from the sidebar."
+        emptyContent: renderWelcomeState(`<span class="ui-welcome-state__accent">ACCOUNT</span> Team`)
     });
 
     const formList = document.getElementById("accounts-form-list");

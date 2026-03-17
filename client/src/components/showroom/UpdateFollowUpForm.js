@@ -1,5 +1,5 @@
 import { backendRequest } from "../../api/index.js";
-import { createFormLayout, createOption, field, formActions, formSection, setStatus } from "../ui.js";
+import { createFormLayout, createOption, field, formActions, formSection, setStatus, setupFormValidation } from "../ui.js";
 
 const COL = {
     SERIAL_NUMBER: 0,
@@ -19,6 +19,31 @@ const COL = {
 
 const UpdateFollowUpForm = (() => {
 
+    function normalizeFollowUpStatus(value) {
+        const status = String(value || "").trim().toUpperCase();
+        if (status === "OPEN" || status === "OPENED") return "OPENED";
+        if (status === "CLOSE" || status === "CLOSED") return "CLOSED";
+        if (status === "PURCHASED") return "PURCHASED";
+        return "OPENED";
+    }
+
+    function feedbackBlock(label, content, date, { editable = false, id = "", required = false, placeholder = "" } = {}) {
+        const control = editable
+            ? `<textarea${id ? ` id="${id}"` : ""} class="ui-textarea" rows="4" placeholder="${placeholder}"${required ? " required" : ""}>${content || ""}</textarea>`
+            : `<textarea class="ui-textarea ui-readonly" rows="4" readonly>${content || ""}</textarea>`;
+
+        return field(
+            label,
+            `
+                <div class="ui-feedback-block">
+                    ${control}
+                    ${date ? `<span class="ui-feedback-time">${date}</span>` : ""}
+                </div>
+            `,
+            { required, full: true }
+        );
+    }
+
     function mount(container, rowData, goBack) {
         const isFirstFeedback = !rowData[COL.FIRST_FEEDBACK];
 
@@ -32,13 +57,12 @@ const UpdateFollowUpForm = (() => {
             ? new Date(rowData[COL.LAST_FEEDBACK_DATE]).toLocaleDateString()
             : "";
 
-        const existingStatus = (rowData[COL.STATUS] || "OPEN").trim().toUpperCase();
+        const existingStatus = normalizeFollowUpStatus(rowData[COL.STATUS]);
 
         container.innerHTML = `
             <div class="u-stack-md">
                 <div class="ui-panel-header">
                     <button id="uf-back" class="ui-button ui-button--ghost" type="button">Back to List</button>
-                    <h2 class="ui-panel-title">${isFirstFeedback ? "Add First Feedback" : "Update Feedback"}</h2>
                 </div>
                 ${createFormLayout({
                     id: "uf-form",
@@ -52,18 +76,14 @@ const UpdateFollowUpForm = (() => {
                         ${field("Alternate Mobile Number", `<input id="uf-alt-mobile" class="ui-input" type="tel" maxlength="10" value="${rowData[COL.ALT_MOBILE_NUMBER] || ""}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" />`)}
                         ${field("Address", `<input id="uf-address" class="ui-input" type="text" value="${rowData[COL.ADDRESS] || ""}" />`)}
                         ${field("Vehicle Details", `<input id="uf-vehicle-details" class="ui-input" type="text" value="${rowData[COL.VEHICLE_DETAILS] || ""}" />`)}
-                        ${field("Status", `<select id="uf-status" class="ui-select">${createOption("OPEN", "Open", existingStatus === "OPEN")}${createOption("CLOSE", "Close", existingStatus === "CLOSE")}${createOption("PURCHASED", "Purchased", existingStatus === "PURCHASED")}</select>`)}
+                        ${field("Status", `<select id="uf-status" class="ui-select">${createOption("OPENED", "Opened", existingStatus === "OPENED")}${createOption("CLOSED", "Closed", existingStatus === "CLOSED")}${createOption("PURCHASED", "Purchased", existingStatus === "PURCHASED")}</select>`)}
                         ${field("Remarks", `<input id="uf-remarks" class="ui-input" type="text" value="${rowData[COL.REMARKS] || ""}" />`)}
                         ${formSection("Feedback")}
                         ${isFirstFeedback
-                            ? field("First Feedback", '<textarea id="uf-first-feedback" class="ui-textarea" rows="4" placeholder="Enter feedback..."></textarea>', { required: true, full: true })
+                            ? feedbackBlock("First Feedback", "", "", { editable: true, id: "uf-first-feedback", required: true, placeholder: "Enter feedback..." })
                             : `
-                                ${field("First Feedback Date", `<input class="ui-input ui-readonly" type="text" value="${firstFeedbackDate}" readonly />`)}
-                                ${field("First Feedback", `<textarea class="ui-textarea ui-readonly" rows="4" readonly>${rowData[COL.FIRST_FEEDBACK] || ""}</textarea>`, { full: true })}
-                                ${rowData[COL.LAST_FEEDBACK]
-                                    ? field("Last Feedback Date", `<input class="ui-input ui-readonly" type="text" value="${lastFeedbackDate}" readonly />`)
-                                    : ""}
-                                ${field("Last Feedback", `<textarea id="uf-last-feedback" class="ui-textarea" rows="4" placeholder="Enter latest feedback...">${rowData[COL.LAST_FEEDBACK] || ""}</textarea>`, { required: true, full: true })}
+                                ${feedbackBlock("First Feedback", rowData[COL.FIRST_FEEDBACK] || "", firstFeedbackDate)}
+                                ${feedbackBlock("Last Feedback", rowData[COL.LAST_FEEDBACK] || "", lastFeedbackDate, { editable: true, id: "uf-last-feedback", required: true, placeholder: "Enter latest feedback..." })}
                             `}
                         ${formActions("uf-submit", "uf-status-msg")}
                     `
@@ -78,6 +98,7 @@ const UpdateFollowUpForm = (() => {
         const form = container.querySelector("#uf-form");
         const submitBtn = container.querySelector("#uf-submit");
         const statusMsg = container.querySelector("#uf-status-msg");
+        setupFormValidation(form);
 
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
@@ -132,3 +153,5 @@ const UpdateFollowUpForm = (() => {
 })();
 
 export { UpdateFollowUpForm };
+
+

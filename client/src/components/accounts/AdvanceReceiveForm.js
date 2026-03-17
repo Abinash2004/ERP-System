@@ -1,6 +1,6 @@
 import { backendRequest } from "../../api/index.js";
 import { SearchableDropdown } from "../SearchableDropdown.js";
-import { createFormLayout, field, formActions, setStatus } from "../ui.js";
+import { createFormLayout, field, formActions, setStatus, setupFormValidation } from "../ui.js";
 
 const COUNTER_COL = 3;
 const RECEIVER_COL = 4;
@@ -19,10 +19,10 @@ const AdvanceReceiveForm = (() => {
             id: "advance-receive-form",
             title: "Advance Receive Form",
             body: `
-                ${field("Advancer Name", '<input id="ar-advancer-name" class="ui-input" type="text" placeholder="Enter advancer name" />', { required: true })}
-                ${field("Mobile Number", '<input id="ar-mobile" class="ui-input" type="tel" maxlength="10" placeholder="Enter 10-digit mobile number" oninput="this.value = this.value.replace(/[^0-9]/g, \"\")" />', { required: true })}
+                ${field("Advancer Name", '<input id="ar-advancer-name" class="ui-input" type="text" placeholder="Enter advancer name" required />', { required: true })}
+                ${field("Mobile Number", '<input id="ar-mobile" class="ui-input" type="tel" maxlength="10" placeholder="Enter 10-digit mobile number" oninput="this.value = this.value.replace(/[^0-9]/g, \"\")" required />', { required: true })}
                 ${field("Alternate Mobile Number", '<input id="ar-alt-mobile" class="ui-input" type="tel" maxlength="10" placeholder="Enter 10-digit alternate mobile number" oninput="this.value = this.value.replace(/[^0-9]/g, \"\")" />')}
-                ${field("Amount", '<input id="ar-amount" class="ui-input" type="number" min="0" placeholder="Enter amount" />', { required: true })}
+                ${field("Amount", '<input id="ar-amount" class="ui-input" type="number" min="0" placeholder="Enter amount" required />', { required: true })}
                 ${field("Counter", '<div id="ar-counter-container"></div>', { required: true })}
                 ${field("Receiver Name", '<div id="ar-receiver-container"></div>', { required: true })}
                 ${field("Model", '<div id="ar-model-container"></div>', { required: true })}
@@ -43,23 +43,28 @@ const AdvanceReceiveForm = (() => {
 
         counterDropdown = SearchableDropdown.mount(container.querySelector("#ar-counter-container"), {
             options: [],
-            placeholder: "Select counter..."
+            placeholder: "Select counter...",
+            required: true
         });
 
         receiverDropdown = SearchableDropdown.mount(container.querySelector("#ar-receiver-container"), {
             options: [],
-            placeholder: "Select receiver..."
+            placeholder: "Select receiver...",
+            required: true
         });
 
         modelDropdown = SearchableDropdown.mount(container.querySelector("#ar-model-container"), {
             options: [],
-            placeholder: "Select model..."
+            placeholder: "Select model...",
+            required: true
         });
 
         colorDropdown = SearchableDropdown.mount(container.querySelector("#ar-color-container"), {
             options: [],
             placeholder: "Select color..."
         });
+
+        setupFormValidation(form);
 
         setStatus(statusEl, "Fetching dropdown values...", "info", true);
 

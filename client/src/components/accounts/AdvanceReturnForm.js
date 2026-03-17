@@ -1,6 +1,6 @@
 import { backendRequest } from "../../api/index.js";
 import { SearchableDropdown } from "../SearchableDropdown.js";
-import { createFormLayout, field, formActions, setStatus } from "../ui.js";
+import { createFormLayout, field, formActions, setStatus, setupFormValidation } from "../ui.js";
 
 const ADVANCER_COL = 9;
 const RETURN_PERSON_COL = 4;
@@ -16,7 +16,7 @@ const AdvanceReturnForm = (() => {
             title: "Advance Return Form",
             body: `
                 ${field("Advancer Name", '<div id="at-advancer-container"></div>', { required: true })}
-                ${field("Advance Return", '<input id="at-return-amount" class="ui-input" type="number" min="0" placeholder="Enter amount to return" />', { required: true })}
+                ${field("Advance Return", '<input id="at-return-amount" class="ui-input" type="number" min="0" placeholder="Enter amount to return" required />', { required: true })}
                 ${field("Return Person", '<div id="at-return-person-container"></div>', { required: true })}
                 ${formActions("at-submit", "at-status")}
             `
@@ -29,13 +29,17 @@ const AdvanceReturnForm = (() => {
 
         advancerDropdown = SearchableDropdown.mount(container.querySelector("#at-advancer-container"), {
             options: [],
-            placeholder: "Select advancer name..."
+            placeholder: "Select advancer name...",
+            required: true
         });
 
         returnPersonDropdown = SearchableDropdown.mount(container.querySelector("#at-return-person-container"), {
             options: [],
-            placeholder: "Select return person..."
+            placeholder: "Select return person...",
+            required: true
         });
+
+        setupFormValidation(form);
 
         setStatus(statusEl, "Fetching dropdown values...", "info", true);
 

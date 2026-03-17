@@ -1,6 +1,6 @@
 import { backendRequest } from "../../api/index.js";
 import { SearchableDropdown } from "../SearchableDropdown.js";
-import { createFormLayout, createOption, field, formActions, setStatus } from "../ui.js";
+import { createFormLayout, createOption, field, formActions, setStatus, setupFormValidation } from "../ui.js";
 
 const CHASSIS_COL = 12;
 const ADVANCER_COL = 9;
@@ -17,24 +17,24 @@ const AddSaleAccountForm = (() => {
             body: `
                 ${field("Chassis Number", '<div id="asa-chassis-container"></div>', { required: true })}
                 ${field("Customer Name", '<input id="asa-customer-name" class="ui-input ui-readonly" type="text" readonly placeholder="Auto-fetched on chassis selection" />')}
-                ${field("Price Tag Number", '<input id="asa-price-tag" class="ui-input" type="text" placeholder="Enter price tag number" />', { required: true })}
-                ${field("Total Down Payment", '<input id="asa-total-dp" class="ui-input" type="number" min="0" placeholder="0" />', { required: true })}
-                ${field("Any Advance?", `<select id="asa-any-advance" class="ui-select">${createOption("NO", "NO", true)}${createOption("YES", "YES")}</select>`, { required: true })}
+                ${field("Price Tag Number", '<input id="asa-price-tag" class="ui-input" type="text" placeholder="Enter price tag number" required />', { required: true })}
+                ${field("Total Down Payment", '<input id="asa-total-dp" class="ui-input" type="number" min="0" placeholder="0" required />', { required: true })}
+                ${field("Any Advance?", `<select id="asa-any-advance" class="ui-select" required>${createOption("NO", "NO", true)}${createOption("YES", "YES")}</select>`, { required: true })}
                 <div id="asa-advance-section" class="conditional-section">
                     ${field("Advancer Name", '<div id="asa-advancer-container"></div>', { required: true })}
                     ${field("Advance Amount", '<input id="asa-advance-amount" class="ui-input ui-readonly" type="number" readonly placeholder="0" />')}
                 </div>
-                ${field("Any Exchange?", `<select id="asa-any-exchange" class="ui-select">${createOption("NO", "NO", true)}${createOption("YES", "YES")}</select>`, { required: true })}
+                ${field("Any Exchange?", `<select id="asa-any-exchange" class="ui-select" required>${createOption("NO", "NO", true)}${createOption("YES", "YES")}</select>`, { required: true })}
                 <div id="asa-exchange-section" class="conditional-section">
-                    ${field("Exchange Model", '<input id="asa-ex-model" class="ui-input" type="text" placeholder="Enter exchange model" />', { required: true })}
-                    ${field("Exchange Register Number", '<input id="asa-ex-reg" class="ui-input" type="text" placeholder="Enter registration number" />', { required: true })}
-                    ${field("Customer Exchange Value", '<input id="asa-ex-cust-val" class="ui-input" type="number" min="0" placeholder="0" />', { required: true })}
-                    ${field("Exchange Dealer", '<input id="asa-ex-dealer" class="ui-input" type="text" placeholder="Enter dealer name" />', { required: true })}
-                    ${field("Dealer Exchange Value", '<input id="asa-ex-deal-val" class="ui-input" type="number" min="0" placeholder="0" />', { required: true })}
+                    ${field("Exchange Model", '<input id="asa-ex-model" class="ui-input" type="text" placeholder="Enter exchange model" required />', { required: true })}
+                    ${field("Exchange Register Number", '<input id="asa-ex-reg" class="ui-input" type="text" placeholder="Enter registration number" required />', { required: true })}
+                    ${field("Customer Exchange Value", '<input id="asa-ex-cust-val" class="ui-input" type="number" min="0" placeholder="0" required />', { required: true })}
+                    ${field("Exchange Dealer", '<input id="asa-ex-dealer" class="ui-input" type="text" placeholder="Enter dealer name" required />', { required: true })}
+                    ${field("Dealer Exchange Value", '<input id="asa-ex-deal-val" class="ui-input" type="number" min="0" placeholder="0" required />', { required: true })}
                 </div>
-                ${field("Customer On Road Price", '<input id="asa-customer-on-road-price" class="ui-input" type="number" min="0" placeholder="0" />', { required: true })}
+                ${field("Customer On Road Price", '<input id="asa-customer-on-road-price" class="ui-input" type="number" min="0" placeholder="0" required />', { required: true })}
                 ${field("Estimated Disbursement", '<input id="asa-estimated-disbursement" class="ui-input" type="number" min="0" placeholder="0" />')}
-                ${field("Received Down Payment", '<input id="asa-received-dp" class="ui-input" type="number" min="0" placeholder="0" />', { required: true })}
+                ${field("Received Down Payment", '<input id="asa-received-dp" class="ui-input" type="number" min="0" placeholder="0" required />', { required: true })}
                 ${field("Due Amount", '<input id="asa-due-amount" class="ui-input ui-readonly" type="number" readonly placeholder="0" />', { hint: 'Formula: Total DP - (Advance + Received DP + Cust Exchange Value)' })}
                 ${formActions("asa-submit", "asa-status")}
             `
@@ -98,6 +98,7 @@ const AddSaleAccountForm = (() => {
         chassisDropdown = SearchableDropdown.mount(container.querySelector("#asa-chassis-container"), {
             options: [],
             placeholder: "Select chassis number...",
+            required: true,
             onChange: async (val) => {
                 if (!val) {
                     customerNameInput.value = "";
@@ -126,6 +127,7 @@ const AddSaleAccountForm = (() => {
         advancerDropdown = SearchableDropdown.mount(container.querySelector("#asa-advancer-container"), {
             options: [],
             placeholder: "Select advancer name...",
+            required: true,
             onChange: async (val) => {
                 if (!val) {
                     advanceAmountInput.value = 0;
@@ -153,6 +155,7 @@ const AddSaleAccountForm = (() => {
         });
 
         setStatus(statusEl, "Fetching dropdown values...", "info", true);
+        setupFormValidation(form);
         try {
             const [chassisRes, advancerRes] = await Promise.all([
                 backendRequest("getDropdown", CHASSIS_COL),

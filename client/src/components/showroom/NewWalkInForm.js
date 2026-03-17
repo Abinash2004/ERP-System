@@ -1,5 +1,5 @@
 import { backendRequest } from "../../api/index.js";
-import { createFormLayout, field, formActions, setStatus } from "../ui.js";
+import { createFormLayout, field, formActions, setStatus, setupFormValidation } from "../ui.js";
 
 const NewWalkInForm = (() => {
 
@@ -8,8 +8,8 @@ const NewWalkInForm = (() => {
             id: "new-walk-in-form",
             title: "New Walk In",
             body: `
-                ${field("Customer Name", '<input id="nwi-customer-name" class="ui-input" type="text" placeholder="Enter customer name" />', { required: true })}
-                ${field("Mobile Number", '<input id="nwi-mobile-number" class="ui-input" type="tel" maxlength="10" placeholder="Enter 10-digit mobile number" oninput="this.value = this.value.replace(/[^0-9]/g, \"\")" />', { required: true })}
+                ${field("Customer Name", '<input id="nwi-customer-name" class="ui-input" type="text" placeholder="Enter customer name" required />', { required: true })}
+                ${field("Mobile Number", '<input id="nwi-mobile-number" class="ui-input" type="tel" maxlength="10" placeholder="Enter 10-digit mobile number" oninput="this.value = this.value.replace(/[^0-9]/g, \"\")" required />', { required: true })}
                 ${field("Alternate Mobile Number", '<input id="nwi-alt-mobile-number" class="ui-input" type="tel" maxlength="10" placeholder="Enter 10-digit alternate mobile number" oninput="this.value = this.value.replace(/[^0-9]/g, \"\")" />')}
                 ${field("Address", '<input id="nwi-address" class="ui-input" type="text" placeholder="Enter address" />', { full: true })}
                 ${field("Vehicle Details", '<input id="nwi-vehicle-details" class="ui-input" type="text" placeholder="Enter vehicle details" />', { full: true })}
@@ -25,6 +25,7 @@ const NewWalkInForm = (() => {
         const submitButton = container.querySelector("#nwi-submit");
         const statusEl = container.querySelector("#nwi-status");
         const form = container.querySelector("#new-walk-in-form");
+        setupFormValidation(form);
 
         form.addEventListener("submit", async (e) => {
             e.preventDefault();

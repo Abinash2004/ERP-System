@@ -1,6 +1,6 @@
 import { backendRequest } from "../../api/index.js";
 import { SearchableDropdown } from "../SearchableDropdown.js";
-import { createFormLayout, field, formActions, setStatus } from "../ui.js";
+import { createFormLayout, field, formActions, setStatus, setupFormValidation } from "../ui.js";
 
 const CHASSIS_COL = 10;
 const COUNTER_COL = 3;
@@ -27,13 +27,17 @@ const StockMovementForm = (() => {
 
         chassisDropdown = SearchableDropdown.mount(container.querySelector("#sm-chassis-container"), {
             options: [],
-            placeholder: "Select chassis number..."
+            placeholder: "Select chassis number...",
+            required: true
         });
 
         counterDropdown = SearchableDropdown.mount(container.querySelector("#sm-counter-container"), {
             options: [],
-            placeholder: "Select counter..."
+            placeholder: "Select counter...",
+            required: true
         });
+
+        setupFormValidation(form);
 
         setStatus(statusEl, "Fetching dropdown values...", "info", true);
 

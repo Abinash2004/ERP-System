@@ -1,6 +1,6 @@
 import { backendRequest } from "../../api/index.js";
 import { SearchableDropdown } from "../SearchableDropdown.js";
-import { createFormLayout, createOption, field, formActions, setStatus } from "../ui.js";
+import { createFormLayout, createOption, field, formActions, setStatus, setupFormValidation } from "../ui.js";
 
 const CHASSIS_COL = 10;
 const COUNTER_COL = 3;
@@ -23,14 +23,14 @@ const AddSaleForm = (() => {
                 ${field("Model", '<input id="as-model" class="ui-input ui-readonly" type="text" readonly placeholder="Auto-filled" />')}
                 ${field("Color", '<input id="as-color" class="ui-input ui-readonly" type="text" readonly placeholder="Auto-filled" />')}
                 ${field("Sale Counter", '<div id="as-counter-container"></div>', { required: true })}
-                ${field("Stock Status", `<select id="as-stock-status" class="ui-select">${createOption("B2C", "B2C", true)}${createOption("RETURN", "RETURN")}</select>`, { required: true })}
-                ${field("Sale Date", '<input id="as-date" class="ui-input" type="date" />', { required: true })}
-                ${field("Customer Name", '<input id="as-customer-name" class="ui-input" type="text" placeholder="Enter customer name" />', { required: true })}
+                ${field("Stock Status", `<select id="as-stock-status" class="ui-select" required>${createOption("B2C", "B2C", true)}${createOption("RETURN", "RETURN")}</select>`, { required: true })}
+                ${field("Sale Date", '<input id="as-date" class="ui-input" type="date" required />', { required: true })}
+                ${field("Customer Name", '<input id="as-customer-name" class="ui-input" type="text" placeholder="Enter customer name" required />', { required: true })}
                 <div id="as-b2c-fields" class="b2c-only b2c-visible">
-                    ${field("Mobile Number", '<input id="as-mobile" class="ui-input" type="tel" maxlength="10" placeholder="10-digit number" oninput="this.value = this.value.replace(/[^0-9]/g, \"\")" />', { required: true })}
+                    ${field("Mobile Number", '<input id="as-mobile" class="ui-input" type="tel" maxlength="10" placeholder="10-digit number" oninput="this.value = this.value.replace(/[^0-9]/g, \"\")" required />', { required: true })}
                     ${field("Alternate Mobile Number", '<input id="as-alt-mobile" class="ui-input" type="tel" maxlength="10" placeholder="10-digit number" oninput="this.value = this.value.replace(/[^0-9]/g, \"\")" />')}
                     ${field("Cash / Finance", '<div id="as-cash-finance-container"></div>', { required: true })}
-                    ${field("Financer", '<input id="as-financer" class="ui-input" type="text" placeholder="Enter financer name" />', { required: true })}
+                    ${field("Financer", '<input id="as-financer" class="ui-input" type="text" placeholder="Enter financer name" required />', { required: true })}
                 </div>
                 ${field("Sales Person", '<div id="as-sales-person-container"></div>', { required: true })}
                 ${formActions("as-submit", "as-status")}
@@ -53,6 +53,7 @@ const AddSaleForm = (() => {
         chassisDropdown = SearchableDropdown.mount(container.querySelector("#as-chassis-container"), {
             options: [],
             placeholder: "Select chassis number...",
+            required: true,
             onChange: async (val) => {
                 if (!val) {
                     modelInput.value = "";
@@ -85,17 +86,20 @@ const AddSaleForm = (() => {
 
         counterDropdown = SearchableDropdown.mount(container.querySelector("#as-counter-container"), {
             options: [],
-            placeholder: "Select sale counter..."
+            placeholder: "Select sale counter...",
+            required: true
         });
 
         cashFinanceDropdown = SearchableDropdown.mount(container.querySelector("#as-cash-finance-container"), {
             options: [],
-            placeholder: "Select cash/finance..."
+            placeholder: "Select cash/finance...",
+            required: true
         });
 
         salesPersonDropdown = SearchableDropdown.mount(container.querySelector("#as-sales-person-container"), {
             options: [],
-            placeholder: "Select sales person..."
+            placeholder: "Select sales person...",
+            required: true
         });
 
         function syncB2cFields() {
@@ -108,6 +112,7 @@ const AddSaleForm = (() => {
 
         statusSelect.addEventListener("change", syncB2cFields);
         syncB2cFields();
+        setupFormValidation(form);
 
         setStatus(statusEl, "Fetching dropdown values...", "info", true);
 
