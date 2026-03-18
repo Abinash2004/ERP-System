@@ -82,3 +82,11 @@ function isDuplicateAdvancerEntry(sheet, input) {
   }
   return false;
 }
+
+function normalizeFollowUpStatus(value) {
+  const status = normalize(value);
+  if (status === "OPEN" || status === "OPENED") return "OPENED";
+  if (status === "CLOSE" || status === "CLOSED") return "CLOSED";
+  if (status === "PURCHASED") return "PURCHASED";
+  return status;
+}
