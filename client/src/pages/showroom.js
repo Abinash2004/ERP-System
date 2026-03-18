@@ -2,7 +2,7 @@ import { clearSession } from "../services/session.js";
 import { DailyTransactionForm } from "../components/showroom/DailyTransactionForm.js";
 import { NewWalkInForm } from "../components/showroom/NewWalkInForm.js";
 import { FollowUpList } from "../components/showroom/FollowUpList.js";
-import { renderSidebarLayout, renderWelcomeState } from "../components/ui.js";
+import { initResponsiveSidebar, renderSidebarLayout, renderWelcomeState } from "../components/ui.js";
 
 const FORMS = [
     { label: "Daily Transaction", component: DailyTransactionForm },
@@ -42,6 +42,8 @@ export function renderShowroom(session) {
 
         formList.appendChild(li);
     });
+
+    initResponsiveSidebar("showroom-page");
 
     document.getElementById("logout").addEventListener("click", () => {
         clearSession();

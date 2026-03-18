@@ -9,7 +9,7 @@ import { AddSaleAccountForm } from "../components/accounts/AddSaleAccountForm.js
 import { AddRegistrationForm } from "../components/accounts/AddRegistrationForm.js";
 import { OptionalFieldForm } from "../components/accounts/OptionalFieldForm.js";
 import { VerifyTransactionForm } from "../components/accounts/VerifyTransactionForm.js";
-import { renderSidebarLayout, renderWelcomeState } from "../components/ui.js";
+import { initResponsiveSidebar, renderSidebarLayout, renderWelcomeState } from "../components/ui.js";
 
 const FORMS = [
     { label: "Add Stock Form", component: AddStockForm },
@@ -56,6 +56,8 @@ export function renderAccounts(session) {
 
         formList.appendChild(li);
     });
+
+    initResponsiveSidebar("accounts-page");
 
     document.getElementById("logout").addEventListener("click", () => {
         clearSession();

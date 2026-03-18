@@ -15,7 +15,13 @@ export function renderWelcomeState(titleHtml = "") {
 export function renderSidebarLayout({ pageId, sidebarTitle, listId, contentId, emptyContent }) {
     return `
         <div id="${pageId}" class="app-shell">
-            <aside class="app-sidebar">
+            <button id="${pageId}-toggle" class="app-sidebar-toggle" type="button" aria-label="Toggle sidebar" aria-controls="${pageId}-sidebar" aria-expanded="false">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <button id="${pageId}-overlay" class="app-sidebar-overlay" type="button" aria-label="Close sidebar"></button>
+            <aside id="${pageId}-sidebar" class="app-sidebar">
                 <div class="app-sidebar__header">
                     <h1 class="app-sidebar__title">${sidebarTitle}</h1>
                 </div>
@@ -29,6 +35,48 @@ export function renderSidebarLayout({ pageId, sidebarTitle, listId, contentId, e
             </main>
         </div>
     `;
+}
+
+export function initResponsiveSidebar(pageId) {
+    const shell = document.getElementById(pageId);
+    if (!shell) return;
+
+    const toggle = document.getElementById(`${pageId}-toggle`);
+    const overlay = document.getElementById(`${pageId}-overlay`);
+    const mobileQuery = window.matchMedia("(max-width: 900px)");
+
+    const setOpen = (open) => {
+        if (!mobileQuery.matches) {
+            shell.classList.remove("sidebar-open");
+            toggle?.setAttribute("aria-expanded", "false");
+            return;
+        }
+
+        shell.classList.toggle("sidebar-open", open);
+        toggle?.setAttribute("aria-expanded", open ? "true" : "false");
+    };
+
+    toggle?.addEventListener("click", () => {
+        setOpen(!shell.classList.contains("sidebar-open"));
+    });
+
+    overlay?.addEventListener("click", () => {
+        setOpen(false);
+    });
+
+    mobileQuery.addEventListener("change", (event) => {
+        if (!event.matches) {
+            setOpen(false);
+        }
+    });
+
+    shell.querySelectorAll(".app-nav__item").forEach((item) => {
+        item.addEventListener("click", () => {
+            if (mobileQuery.matches) {
+                setOpen(false);
+            }
+        });
+    });
 }
 
 export function renderLoginLayout() {
@@ -194,6 +242,3 @@ export function setStatus(element, text = "", type = "", loading = false) {
 export function createOption(value, label = value, selected = false) {
     return `<option value="${escapeAttribute(value)}"${selected ? " selected" : ""}>${label}</option>`;
 }
-
-
-
