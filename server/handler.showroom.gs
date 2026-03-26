@@ -154,7 +154,7 @@ function getFollowUpList(data) {
   const statusValues = sheet.getRange(2, statusCol, lastRow - 1, 1).getValues();
 
   const matchingRowIndexes = [];
-  for (let i = 0; i < locationValues.length; i++) {
+  for (let i = locationValues.length - 1; i >= 0; i--) {
     const locationMatch = normalize(locationValues[i][0]) === targetBranch;
     const statusMatch = !filterByStatus || normalizeFollowUpStatus(statusValues[i][0]) === targetStatus;
     if (locationMatch && statusMatch) {
