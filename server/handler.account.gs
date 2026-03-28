@@ -618,6 +618,13 @@ function verifyTransactionForm(data) {
       field: "EXCHANGE TRANSACTION CODE", 
       key: "exchangeTransactionCode",
       map: MAIN
+    },
+    8: {
+      sheet: "DAILY TRANSACTION", 
+      searchCol: DAILY_TRANSACTION["SERIAL NUMBER"], 
+      field: "VERIFICATION CHASSIS NUMBER", 
+      key: "verificationChassisNumber",
+      map: DAILY_TRANSACTION
     }
   };
 
@@ -627,7 +634,7 @@ function verifyTransactionForm(data) {
   const sheet = ss.getSheetByName(config.sheet);
   if (!sheet) return { status: 0, message: config.sheet + " not found" };
 
-  const recordKey = normalize(config.sheet === "ADVANCE" ? data.advancerName : data.chassis);
+  const recordKey = normalize(config.sheet === "ADVANCE" ? data.advancerName : config.sheet === "DAILY TRANSACTION" ? data.serialNumber : data.chassis);
   const fieldValue = normalize(data[config.key]);
 
   if (!recordKey || !fieldValue) {
@@ -644,5 +651,5 @@ function verifyTransactionForm(data) {
   payload[config.field] = fieldValue;
 
   safeWriteRow(sheet, rowIndex, payload, config.map);
-  return { status: 1, message: "optional field updated successfully" };
+  return { status: 1, message: "verified successfully" };
 }
