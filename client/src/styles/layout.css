@@ -34,6 +34,9 @@
 }
 
 .app-sidebar__footer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
     margin-top: auto;
     padding-top: var(--space-4a);
     border-top: 1px solid var(--border);
@@ -200,6 +203,7 @@
         row-gap: 16px;
     }
 }
+
 
 
 

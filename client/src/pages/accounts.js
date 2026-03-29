@@ -10,6 +10,7 @@ import { AddRegistrationForm } from "../components/accounts/AddRegistrationForm.
 import { OptionalFieldForm } from "../components/accounts/OptionalFieldForm.js";
 import { VerifyTransactionForm } from "../components/accounts/VerifyTransactionForm.js";
 import { initResponsiveSidebar, renderSidebarLayout, renderWelcomeState } from "../components/ui.js";
+import { getSheetUrlForSession } from "../config/index.js";
 
 const FORMS = [
     { label: "Add Stock Form", component: AddStockForm },
@@ -25,12 +26,15 @@ const FORMS = [
 ];
 
 export function renderAccounts(session) {
+    const sheetUrl = getSheetUrlForSession(session);
+
     document.getElementById("app").innerHTML = renderSidebarLayout({
         pageId: "accounts-page",
         sidebarTitle: "Account Tasks",
         listId: "accounts-form-list",
         contentId: "accounts-content",
-        emptyContent: renderWelcomeState(`<span class="ui-welcome-state__accent">ACCOUNT</span> Team`)
+        emptyContent: renderWelcomeState(`<span class="ui-welcome-state__accent">ACCOUNT</span> Team`),
+        showViewSheetButton: Boolean(sheetUrl)
     });
 
     const formList = document.getElementById("accounts-form-list");
@@ -58,6 +62,10 @@ export function renderAccounts(session) {
     });
 
     initResponsiveSidebar("accounts-page");
+
+    document.getElementById("view-sheet")?.addEventListener("click", () => {
+        window.open(sheetUrl, "_blank", "noopener,noreferrer");
+    });
 
     document.getElementById("logout").addEventListener("click", () => {
         clearSession();
