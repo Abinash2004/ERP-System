@@ -53,7 +53,7 @@ function getAdvancerRowIndexHandler(sheet, input) {
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return -1;
 
-  const statusIndex = ADVANCE["STATUS"] - 2; 
+  const statusIndex = ADVANCE["STATUS"] - 2;
   const numCols = ADVANCE["STATUS"] - 1;
 
   const data = sheet.getRange(2, 2, lastRow - 1, numCols).getValues();
@@ -68,15 +68,15 @@ function getAdvancerRowIndexHandler(sheet, input) {
 function isDuplicateAdvancerEntry(sheet, input) {
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return false;
-  
-  const statusIndex = ADVANCE["STATUS"] - 2; 
 
-  const numCols = ADVANCE["STATUS"] - 1; 
+  const statusIndex = ADVANCE["STATUS"] - 2;
+
+  const numCols = ADVANCE["STATUS"] - 1;
   const data = sheet.getRange(2, 2, lastRow - 1, numCols).getValues();
-  
+
   for (let i = 0; i < data.length; i++) {
     if (
-      String(data[i][0]).trim().toUpperCase() == input && 
+      String(data[i][0]).trim().toUpperCase() == input &&
       String(data[i][statusIndex]).trim().toUpperCase() == "RECEIVED"
     ) return true;
   }
@@ -90,3 +90,8 @@ function normalizeFollowUpStatus(value) {
   if (status === "PURCHASED") return "PURCHASED";
   return status;
 }
+
+const formatDate = (value = Date.now()) => {
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? "" : Utilities.formatDate(d, TIMEZONE, "dd/MM/yyyy");
+};

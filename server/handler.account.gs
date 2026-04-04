@@ -110,7 +110,7 @@ function addStockForm(data) {
   if (requiredFields.some(v => !v)) {
     return { status: 0, message: "some fields are missing" };
   }
-  if (isDuplicateEntry(mainSheet,payload["CHASSIS NUMBER"],MAIN["CHASSIS NUMBER"])) {
+  if (isDuplicateEntry(mainSheet, payload["CHASSIS NUMBER"], MAIN["CHASSIS NUMBER"])) {
     return { status: 0, message: "chassis number already exists" };
   }
 
@@ -131,14 +131,14 @@ function addInvoiceForm(data) {
   }
 
   const chassis = normalize(data.chassis);
-  const rowIndex = getRowIndexHandler(mainSheet,chassis,MAIN["CHASSIS NUMBER"]);
+  const rowIndex = getRowIndexHandler(mainSheet, chassis, MAIN["CHASSIS NUMBER"]);
 
   if (rowIndex === -1) {
     return { status: 0, message: "chassis does not exist" };
   }
 
   const payload = {
-    "INVOICE DATE": data.date || "",
+    "INVOICE DATE": formatDate(data.date),
     "PURCHASED INVOICE NUMBER": normalize(data.invoice),
     "GROSS VALUE BEFORE DISCOUNT": normalize(data.gvbd)
   };
@@ -212,7 +212,7 @@ function advanceReceiveForm(data) {
 
   const nextRow = getFirstEmptyRow(advanceSheet, "A2:A");
   const payload = {
-    "ADVANCE DATE": new Date(Date.now()),
+    "ADVANCE DATE": formatDate(),
     "ADVANCER NAME": normalize(data.advancer_name),
     "MOBILE NUMBER": normalize(data.mobile_number),
     "AMOUNT": normalize(data.amount),
@@ -238,7 +238,7 @@ function advanceReceiveForm(data) {
     return { status: 0, message: "some fields are missing" };
   }
 
-  if (isDuplicateAdvancerEntry(advanceSheet,payload["ADVANCER NAME"])) {
+  if (isDuplicateAdvancerEntry(advanceSheet, payload["ADVANCER NAME"])) {
     return { status: 0, message: "advancer already exists" };
   }
 
@@ -305,7 +305,7 @@ function addSaleForm(data) {
   const payload = {
     "SALE COUNTER": normalize(data.saleCounter),
     "STOCK STATUS": normalize(data.stockStatus),
-    "SALE DATE": data.saleDate || "",
+    "SALE DATE": formatDate(data.saleDate),
     "CUSTOMER NAME": normalize(data.customerName),
     "SALES PERSON": normalize(data.salesPerson)
   };
@@ -504,33 +504,33 @@ function optionalFieldForm(data) {
   }
 
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  
+
   const configs = {
-    1: { 
-      sheet: "MAIN", 
-      searchCol: MAIN["CHASSIS NUMBER"], 
-      field: "KEY NUMBER", 
+    1: {
+      sheet: "MAIN",
+      searchCol: MAIN["CHASSIS NUMBER"],
+      field: "KEY NUMBER",
       key: "keyNumber",
       map: MAIN
     },
-    2: { 
-      sheet: "MAIN", 
-      searchCol: MAIN["CHASSIS NUMBER"], 
-      field: "ALTERNATE MOBILE NUMBER", 
+    2: {
+      sheet: "MAIN",
+      searchCol: MAIN["CHASSIS NUMBER"],
+      field: "ALTERNATE MOBILE NUMBER",
       key: "alternateMobileNumber",
       map: MAIN
     },
-    3: { 
-      sheet: "MAIN", 
-      searchCol: MAIN["CHASSIS NUMBER"], 
-      field: "ESTIMATED DISBURSEMENT", 
+    3: {
+      sheet: "MAIN",
+      searchCol: MAIN["CHASSIS NUMBER"],
+      field: "ESTIMATED DISBURSEMENT",
       key: "estimatedDisbursement",
       map: MAIN
     },
-    4: { 
-      sheet: "ADVANCE", 
-      searchCol: ADVANCE["ADVANCER NAME"], 
-      field: "ALTERNATE MOBILE NUMBER", 
+    4: {
+      sheet: "ADVANCE",
+      searchCol: ADVANCE["ADVANCER NAME"],
+      field: "ALTERNATE MOBILE NUMBER",
       key: "alternateMobileNumber",
       map: ADVANCE
     }
@@ -568,61 +568,61 @@ function verifyTransactionForm(data) {
   }
 
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  
+
   const configs = {
-    1: { 
-      sheet: "ADVANCE", 
-      searchCol: ADVANCE["ADVANCER NAME"], 
+    1: {
+      sheet: "ADVANCE",
+      searchCol: ADVANCE["ADVANCER NAME"],
       field: "RECEIVED TRANSACTION CODE",
       key: "receivedTransactionCode",
       map: ADVANCE
     },
     2: {
-      sheet: "ADVANCE", 
-      searchCol: ADVANCE["ADVANCER NAME"], 
+      sheet: "ADVANCE",
+      searchCol: ADVANCE["ADVANCER NAME"],
       field: "RETURNED TRANSACTION CODE",
       key: "returnedTransactionCode",
       map: ADVANCE
     },
-    3: { 
-      sheet: "MAIN", 
-      searchCol: MAIN["CHASSIS NUMBER"], 
-      field: "DP TRANSACTION CODE", 
+    3: {
+      sheet: "MAIN",
+      searchCol: MAIN["CHASSIS NUMBER"],
+      field: "DP TRANSACTION CODE",
       key: "dpTransactionCode",
       map: MAIN
     },
-    4: { 
-      sheet: "MAIN", 
-      searchCol: MAIN["CHASSIS NUMBER"], 
-      field: "INSURANCE TRANSACTION CODE", 
+    4: {
+      sheet: "MAIN",
+      searchCol: MAIN["CHASSIS NUMBER"],
+      field: "INSURANCE TRANSACTION CODE",
       key: "insuranceTransactionCode",
       map: MAIN
     },
-    5: { 
-      sheet: "MAIN", 
-      searchCol: MAIN["CHASSIS NUMBER"], 
-      field: "RTO TRANSACTION CODE", 
+    5: {
+      sheet: "MAIN",
+      searchCol: MAIN["CHASSIS NUMBER"],
+      field: "RTO TRANSACTION CODE",
       key: "rtoTransactionCode",
       map: MAIN
     },
-    6: { 
-      sheet: "MAIN", 
-      searchCol: MAIN["CHASSIS NUMBER"], 
-      field: "DISBURSEMENT TRANSACTION CODE", 
+    6: {
+      sheet: "MAIN",
+      searchCol: MAIN["CHASSIS NUMBER"],
+      field: "DISBURSEMENT TRANSACTION CODE",
       key: "disbursementTransactionCode",
       map: MAIN
     },
-    7: { 
-      sheet: "MAIN", 
-      searchCol: MAIN["CHASSIS NUMBER"], 
-      field: "EXCHANGE TRANSACTION CODE", 
+    7: {
+      sheet: "MAIN",
+      searchCol: MAIN["CHASSIS NUMBER"],
+      field: "EXCHANGE TRANSACTION CODE",
       key: "exchangeTransactionCode",
       map: MAIN
     },
     8: {
-      sheet: "DAILY TRANSACTION", 
-      searchCol: DAILY_TRANSACTION["SERIAL NUMBER"], 
-      field: "VERIFICATION CHASSIS NUMBER", 
+      sheet: "DAILY TRANSACTION",
+      searchCol: DAILY_TRANSACTION["SERIAL NUMBER"],
+      field: "VERIFICATION CHASSIS NUMBER",
       key: "verificationChassisNumber",
       map: DAILY_TRANSACTION
     }

@@ -19,7 +19,7 @@ function getOpeningBalance(data) {
   }
 
   const locationCol = DAILY_TRANSACTION["LOCATION"];
-  const closingCol = DAILY_TRANSACTION["CLOSING BALANCE"]; 
+  const closingCol = DAILY_TRANSACTION["CLOSING BALANCE"];
 
   const locations = sheet.getRange(2, locationCol, lastRow - 1, 1).getValues();
   const closingBalances = sheet.getRange(2, closingCol, lastRow - 1, 1).getValues();
@@ -28,10 +28,10 @@ function getOpeningBalance(data) {
 
   for (let i = locations.length - 1; i >= 0; i--) {
     if (normalize(locations[i][0]) === targetBranch) {
-      return { 
-        status: 1, 
-        message: "success", 
-        openingBalance: closingBalances[i][0] || 0 
+      return {
+        status: 1,
+        message: "success",
+        openingBalance: closingBalances[i][0] || 0
       };
     }
   }
@@ -55,7 +55,7 @@ function dailyTransactionForm(data) {
   const nextRow = getFirstEmptyRow(sheet, "A2:A");
   const payload = {
     "SERIAL NUMBER": nextRow - 1,
-    "DATE": new Date(Date.now()),
+    "DATE": formatDate(),
     "LOCATION": normalize(data.location),
     "OPENING BALANCE": normalize(data.openingBalance) || 0,
     "CASH IN": normalize(data.cashIn) || 0,
@@ -99,7 +99,7 @@ function newWalkInForm(data) {
   const nextRow = getFirstEmptyRow(sheet, "A2:A");
   const payload = {
     "SERIAL NUMBER": nextRow - 1,
-    "VISIT DATE": new Date(Date.now()),
+    "VISIT DATE": formatDate(),
     "LOCATION": normalize(data.location),
     "CUSTOMER NAME": normalize(data.customerName),
     "MOBILE NUMBER": normalize(data.mobileNumber),
@@ -108,7 +108,7 @@ function newWalkInForm(data) {
     "VEHICLE DETAILS": normalize(data.vehicleDetails),
     "STATUS": "OPENED"
   };
-  
+
   const requiredFields = [
     payload["SERIAL NUMBER"],
     payload["VISIT DATE"],
@@ -229,10 +229,10 @@ function updateFollowUpForm(data) {
 
   if (!existingFirstFeedback) {
     payload["FIRST FEEDBACK"] = normalize(data.firstFeedback);
-    payload["FIRST FEEDBACK DATE"] = new Date();
+    payload["FIRST FEEDBACK DATE"] = formatDate();
   } else {
     payload["LAST FEEDBACK"] = normalize(data.lastFeedback);
-    payload["LAST FEEDBACK DATE"] = new Date();
+    payload["LAST FEEDBACK DATE"] = formatDate();
   }
 
   safeWriteRow(sheet, rowIndex, payload, FOLLOW_UP);
