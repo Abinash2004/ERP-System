@@ -331,6 +331,7 @@
     justify-content: center;
     text-align: center;
 }
+
 .ui-loader {
     display: inline-block;
     width: 16px;
@@ -466,6 +467,32 @@
     background: #fbecec;
 }
 
+.ui-phone-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 35px;
+    height: 35px;
+    margin-left: 10px;
+    border-radius: 50%;
+    background: var(--hover);
+    color: var(--dark);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    vertical-align: middle;
+    border: 1px solid var(--border);
+}
+
+.ui-phone-btn:hover {
+    background: var(--active);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.ui-phone-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
 
 .ui-feedback-block {
     display: flex;
@@ -487,6 +514,7 @@
     line-height: 1;
     text-align: right;
 }
+
 .sd-wrapper {
     position: relative;
     width: 100%;
@@ -578,12 +606,3 @@
         padding: 24px 20px;
     }
 }
-
-
-
-
-
-
-
-
-

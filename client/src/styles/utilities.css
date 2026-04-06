@@ -31,3 +31,13 @@
 .u-muted {
     color: var(--text-muted);
 }
+
+.u-nowrap {
+    white-space: nowrap !important;
+}
+
+.u-flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
