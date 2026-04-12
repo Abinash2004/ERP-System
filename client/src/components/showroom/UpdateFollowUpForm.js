@@ -24,6 +24,7 @@ const UpdateFollowUpForm = (() => {
         if (status === "OPEN" || status === "OPENED") return "OPENED";
         if (status === "CLOSE" || status === "CLOSED") return "CLOSED";
         if (status === "PURCHASED") return "PURCHASED";
+        if (status === "BOOKED") return "BOOKED";
         return "OPENED";
     }
 
@@ -76,7 +77,7 @@ const UpdateFollowUpForm = (() => {
                         ${field("Alternate Mobile Number", `<input id="uf-alt-mobile" class="ui-input" type="tel" maxlength="10" value="${rowData[COL.ALT_MOBILE_NUMBER] || ""}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" />`)}
                         ${field("Address", `<input id="uf-address" class="ui-input" type="text" value="${rowData[COL.ADDRESS] || ""}" />`)}
                         ${field("Vehicle Details", `<input id="uf-vehicle-details" class="ui-input" type="text" value="${rowData[COL.VEHICLE_DETAILS] || ""}" />`)}
-                        ${field("Status", `<select id="uf-status" class="ui-select">${createOption("OPENED", "Opened", existingStatus === "OPENED")}${createOption("CLOSED", "Closed", existingStatus === "CLOSED")}${createOption("PURCHASED", "Purchased", existingStatus === "PURCHASED")}</select>`)}
+                        ${field("Status", `<select id="uf-status" class="ui-select">${createOption("OPENED", "Opened", existingStatus === "OPENED")}${createOption("CLOSED", "Closed", existingStatus === "CLOSED")}${createOption("PURCHASED", "Purchased", existingStatus === "PURCHASED")}${createOption("BOOKED", "Booked", existingStatus === "BOOKED")}</select>`)}
                         ${field("Remarks", `<input id="uf-remarks" class="ui-input" type="text" value="${rowData[COL.REMARKS] || ""}" />`)}
                         ${formSection("Feedback")}
                         ${isFirstFeedback

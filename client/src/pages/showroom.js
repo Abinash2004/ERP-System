@@ -3,7 +3,7 @@ import { DailyTransactionForm } from "../components/showroom/DailyTransactionFor
 import { NewWalkInForm } from "../components/showroom/NewWalkInForm.js";
 import { FollowUpList } from "../components/showroom/FollowUpList.js";
 import { initResponsiveSidebar, renderSidebarLayout, renderWelcomeState } from "../components/ui.js";
-import { getSheetUrlForSession } from "../config/index.js";
+import { getSheetUrlForSession, getDriveUrlForSession } from "../config/index.js";
 
 const FORMS = [
     { label: "Daily Transaction", component: DailyTransactionForm },
@@ -13,6 +13,7 @@ const FORMS = [
 
 export function renderShowroom(session) {
     const sheetUrl = getSheetUrlForSession(session);
+    const driveUrl = getDriveUrlForSession(session);
 
     document.getElementById("app").innerHTML = renderSidebarLayout({
         pageId: "showroom-page",
@@ -20,7 +21,8 @@ export function renderShowroom(session) {
         listId: "form-list",
         contentId: "showroom-content",
         emptyContent: renderWelcomeState(`<span class="ui-welcome-state__accent">${session.branch}</span> Team`),
-        showViewSheetButton: Boolean(sheetUrl)
+        showViewSheetButton: Boolean(sheetUrl),
+        showViewDriveButton: Boolean(driveUrl)
     });
 
     const formList = document.getElementById("form-list");
@@ -48,6 +50,10 @@ export function renderShowroom(session) {
     });
 
     initResponsiveSidebar("showroom-page");
+
+    document.getElementById("view-drive")?.addEventListener("click", () => {
+        window.open(driveUrl, "_blank", "noopener,noreferrer");
+    });
 
     document.getElementById("view-sheet")?.addEventListener("click", () => {
         window.open(sheetUrl, "_blank", "noopener,noreferrer");

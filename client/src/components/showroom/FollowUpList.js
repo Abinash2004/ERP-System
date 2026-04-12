@@ -16,6 +16,7 @@ function normalizeFollowUpStatus(value) {
     if (status === "OPEN" || status === "OPENED") return "OPENED";
     if (status === "CLOSE" || status === "CLOSED") return "CLOSED";
     if (status === "PURCHASED") return "PURCHASED";
+    if (status === "BOOKED") return "BOOKED";
     return "OPENED";
 }
 
@@ -29,7 +30,7 @@ const FollowUpList = (() => {
         function showList() {
             container.innerHTML = `
                 <section class="ui-table-card ui-table-card--tight">
-                    ${panelHeader("Follow Up Customer List", '<select id="fup-status-filter" class="ui-select ui-select--compact"><option value="ALL">All</option><option value="OPENED">Opened</option><option value="CLOSED">Closed</option><option value="PURCHASED">Purchased</option></select>')}
+                    ${panelHeader("Follow Up Customer List", '<select id="fup-status-filter" class="ui-select ui-select--compact"><option value="ALL">All</option><option value="OPENED">Opened</option><option value="CLOSED">Closed</option><option value="PURCHASED">Purchased</option><option value="BOOKED">Booked</option></select>')}
                     <div id="fup-status" class="ui-status" role="status" aria-live="polite"></div>
                     <div class="ui-table-scroll">
                         <table class="ui-table" id="follow-up-table">
@@ -94,7 +95,9 @@ const FollowUpList = (() => {
                                 ? "success"
                                 : followUpStatus === "CLOSED"
                                     ? "danger"
-                                    : "warning";
+                                    : followUpStatus === "BOOKED"
+                                        ? "info"
+                                        : "warning";
 
                             tr.innerHTML = `
                                 <td>${visitDate}</td>

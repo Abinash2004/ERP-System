@@ -328,9 +328,11 @@ function addSaleForm(data) {
   if (payload["STOCK STATUS"] === "B2C") {
     requiredFields.push(
       payload["MOBILE NUMBER"],
-      payload["CASH / FINANCE"],
-      payload["FINANCER"]
+      payload["CASH / FINANCE"]
     );
+    if (payload["CASH / FINANCE"] !== "CASH") {
+      requiredFields.push(payload["FINANCER"]);
+    }
   }
 
   if (requiredFields.some(v => !v)) {

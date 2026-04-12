@@ -1,8 +1,11 @@
 .app-nav {
+    flex: 1;
     display: flex;
     flex-direction: column;
     gap: var(--space-1);
     list-style: none;
+    overflow-y: auto;
+    margin: var(--space-5) 0;
 }
 
 .app-nav__item {
@@ -465,6 +468,11 @@
 .ui-follow-status--danger {
     color: #991b1b;
     background: #fbecec;
+}
+
+.ui-follow-status--info {
+    color: #1d4ed8;
+    background: #eff6ff;
 }
 
 .ui-phone-btn {

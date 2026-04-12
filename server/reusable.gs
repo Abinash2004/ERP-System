@@ -88,6 +88,7 @@ function normalizeFollowUpStatus(value) {
   if (status === "OPEN" || status === "OPENED") return "OPENED";
   if (status === "CLOSE" || status === "CLOSED") return "CLOSED";
   if (status === "PURCHASED") return "PURCHASED";
+  if (status === "BOOKED") return "BOOKED";
   return status;
 }
 

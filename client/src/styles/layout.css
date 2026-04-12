@@ -12,7 +12,9 @@
 .app-sidebar {
     display: flex;
     flex-direction: column;
-    gap: var(--space-5);
+    height: 100vh;
+    position: sticky;
+    top: 0;
     padding: 28px 18px 24px;
     background: var(--panel);
     border-right: 1px solid var(--border);

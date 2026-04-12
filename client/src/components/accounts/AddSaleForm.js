@@ -30,7 +30,7 @@ const AddSaleForm = (() => {
                     ${field("Mobile Number", '<input id="as-mobile" class="ui-input" type="tel" maxlength="10" placeholder="10-digit number" oninput="this.value = this.value.replace(/[^0-9]/g, \"\")" required />', { required: true })}
                     ${field("Alternate Mobile Number", '<input id="as-alt-mobile" class="ui-input" type="tel" maxlength="10" placeholder="10-digit number" oninput="this.value = this.value.replace(/[^0-9]/g, \"\")" />')}
                     ${field("Cash / Finance", '<div id="as-cash-finance-container"></div>', { required: true })}
-                    ${field("Financer", '<input id="as-financer" class="ui-input" type="text" placeholder="Enter financer name" required />', { required: true })}
+                    ${field("Financer", '<input id="as-financer" class="ui-input" type="text" placeholder="Enter financer name" />')}
                 </div>
                 ${field("Sales Person", '<div id="as-sales-person-container"></div>', { required: true })}
                 ${formActions("as-submit", "as-status")}
@@ -154,8 +154,12 @@ const AddSaleForm = (() => {
             const financer = financerInput.value.trim();
 
             if (stockStatus === "B2C") {
-                if (!mobile || !cashOrFinance || !financer) {
+                if (!mobile || !cashOrFinance) {
                     setStatus(statusEl, "B2C mandatory fields are required.", "error");
+                    return;
+                }
+                if (cashOrFinance !== "CASH" && !financer) {
+                    setStatus(statusEl, "Financer is required for finance sales.", "error");
                     return;
                 }
                 const phoneRegex = /^[0-9]{10}$/;
