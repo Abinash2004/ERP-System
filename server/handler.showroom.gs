@@ -121,6 +121,12 @@ function newWalkInForm(data) {
     return { status: 0, message: "some fields are missing" };
   }
 
+  const isDuplicateCustomer = isDuplicateEntry(sheet, payload["MOBILE NUMBER"], FOLLOW_UP["MOBILE NUMBER"]);
+
+  if (isDuplicateCustomer) {
+    return { status: 0, message: "customer with this mobile number already exists"}
+  }
+
   safeWriteRow(sheet, nextRow, payload, FOLLOW_UP);
   return { status: 1, message: "new walk in data added successfully" };
 }
