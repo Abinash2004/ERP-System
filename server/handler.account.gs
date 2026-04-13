@@ -138,7 +138,7 @@ function addInvoiceForm(data) {
   }
 
   const payload = {
-    "INVOICE DATE": formatDate(data.date),
+    "INVOICE DATE": new Date(data.date),
     "PURCHASED INVOICE NUMBER": normalize(data.invoice),
     "GROSS VALUE BEFORE DISCOUNT": normalize(data.gvbd)
   };
@@ -212,7 +212,7 @@ function advanceReceiveForm(data) {
 
   const nextRow = getFirstEmptyRow(advanceSheet, "A2:A");
   const payload = {
-    "ADVANCE DATE": formatDate(),
+    "ADVANCE DATE": new Date(),
     "ADVANCER NAME": normalize(data.advancer_name),
     "MOBILE NUMBER": normalize(data.mobile_number),
     "AMOUNT": normalize(data.amount),
@@ -305,7 +305,7 @@ function addSaleForm(data) {
   const payload = {
     "SALE COUNTER": normalize(data.saleCounter),
     "STOCK STATUS": normalize(data.stockStatus),
-    "SALE DATE": formatDate(data.saleDate),
+    "SALE DATE": new Date(data.saleDate),
     "CUSTOMER NAME": normalize(data.customerName),
     "SALES PERSON": normalize(data.salesPerson)
   };

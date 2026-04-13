@@ -91,8 +91,3 @@ function normalizeFollowUpStatus(value) {
   if (status === "BOOKED") return "BOOKED";
   return status;
 }
-
-const formatDate = (value = Date.now()) => {
-  const d = new Date(value);
-  return isNaN(d.getTime()) ? "" : Utilities.formatDate(d, TIMEZONE, "dd/MM/yyyy");
-};

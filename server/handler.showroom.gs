@@ -55,7 +55,7 @@ function dailyTransactionForm(data) {
   const nextRow = getFirstEmptyRow(sheet, "A2:A");
   const payload = {
     "SERIAL NUMBER": nextRow - 1,
-    "DATE": formatDate(),
+    "DATE": new Date(),
     "LOCATION": normalize(data.location),
     "OPENING BALANCE": normalize(data.openingBalance) || 0,
     "CASH IN": normalize(data.cashIn) || 0,
@@ -99,7 +99,7 @@ function newWalkInForm(data) {
   const nextRow = getFirstEmptyRow(sheet, "A2:A");
   const payload = {
     "SERIAL NUMBER": nextRow - 1,
-    "VISIT DATE": formatDate(),
+    "VISIT DATE": new Date(),
     "LOCATION": normalize(data.location),
     "CUSTOMER NAME": normalize(data.customerName),
     "MOBILE NUMBER": normalize(data.mobileNumber),
@@ -235,10 +235,10 @@ function updateFollowUpForm(data) {
 
   if (!existingFirstFeedback) {
     payload["FIRST FEEDBACK"] = normalize(data.firstFeedback);
-    payload["FIRST FEEDBACK DATE"] = formatDate();
+    payload["FIRST FEEDBACK DATE"] = new Date();
   } else {
     payload["LAST FEEDBACK"] = normalize(data.lastFeedback);
-    payload["LAST FEEDBACK DATE"] = formatDate();
+    payload["LAST FEEDBACK DATE"] = new Date();
   }
 
   safeWriteRow(sheet, rowIndex, payload, FOLLOW_UP);
