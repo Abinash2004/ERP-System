@@ -1,12 +1,10 @@
 import { clearSession } from "../services/session.js";
-import { DailyTransactionForm } from "../components/showroom/DailyTransactionForm.js";
 import { NewWalkInForm } from "../components/showroom/NewWalkInForm.js";
 import { FollowUpList } from "../components/showroom/FollowUpList.js";
 import { initResponsiveSidebar, renderSidebarLayout, renderWelcomeState } from "../components/ui.js";
 import { getSheetUrlForSession, getDriveUrlForSession } from "../config/index.js";
 
 const FORMS = [
-    { label: "Daily Transaction", component: DailyTransactionForm },
     { label: "New Walk In", component: NewWalkInForm },
     { label: "Customer Follow Up", component: FollowUpList }
 ];

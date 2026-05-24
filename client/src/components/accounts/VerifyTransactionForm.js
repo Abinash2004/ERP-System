@@ -10,10 +10,9 @@ const COLS = {
     RTO: 22,
     DISB: 23,
     EXCH: 24,
-    DT_DP: 25,
-    CODE_26: 26,
-    CODE_27: 27,
-    CODE_28: 28
+    CODE_26: 25,
+    CODE_27: 26,
+    CODE_28: 27
 };
 
 const VerifyTransactionForm = (() => {
@@ -25,7 +24,6 @@ const VerifyTransactionForm = (() => {
             advRetName: null,
             advRetCode: null,
             dpChassis: null,
-            dpDailyCode: null,
             dpCode: null,
             insChassis: null,
             insCode: null,
@@ -56,7 +54,6 @@ const VerifyTransactionForm = (() => {
                     ${field("Chassis Number", '<div id="vtf-dp-chassis"></div>', { required: true })}
                     ${field("Customer Name", '<input id="vtf-dp-cust" class="ui-input ui-readonly" type="text" readonly placeholder="Auto-fetched" />')}
                     ${field("Received Down Payment Amount", '<input id="vtf-dp-amt" class="ui-input ui-readonly" type="text" readonly placeholder="Auto-fetched" />')}
-                    ${field("Daily Transaction Code", '<div id="vtf-dp-daily-code"></div>', { required: true })}
                     ${field("Transaction Code", '<div id="vtf-dp-code"></div>', { required: true })}
                 </div>
                 <div id="vtf-section-4" class="vtf-section">
@@ -144,7 +141,6 @@ const VerifyTransactionForm = (() => {
             required: true,
             onChange: (val) => fetchChassisData(val, container.querySelector("#vtf-dp-cust"), container.querySelector("#vtf-dp-amt"))
         });
-        dropdowns.dpDailyCode = SearchableDropdown.mount(container.querySelector("#vtf-dp-daily-code"), { placeholder: "Select daily transaction code...", required: true });
         dropdowns.dpCode = SearchableDropdown.mount(container.querySelector("#vtf-dp-code"), { placeholder: "Select code...", required: true });
 
         dropdowns.insChassis = SearchableDropdown.mount(container.querySelector("#vtf-ins-chassis"), {
@@ -191,7 +187,6 @@ const VerifyTransactionForm = (() => {
         try {
             const results = await Promise.all([
                 backendRequest("getDropdown", COLS.ADV_REC),
-                backendRequest("getDropdown", COLS.DT_DP),
                 backendRequest("getDropdown", COLS.ADV_RET),
                 backendRequest("getDropdown", COLS.CODE_26),
                 backendRequest("getDropdown", COLS.DP),
@@ -204,24 +199,23 @@ const VerifyTransactionForm = (() => {
             ]);
 
             if (results[0].status === 1) dropdowns.advRecName.setOptions(results[0].data);
-            if (results[1].status === 1) dropdowns.dpDailyCode.setOptions(results[1].data);
-            if (results[2].status === 1) dropdowns.advRetName.setOptions(results[2].data);
-            if (results[3].status === 1) {
-                dropdowns.advRecCode.setOptions(results[3].data);
-                dropdowns.dpCode.setOptions(results[3].data);
-                dropdowns.exchCode.setOptions(results[3].data);
+            if (results[1].status === 1) dropdowns.advRetName.setOptions(results[1].data);
+            if (results[2].status === 1) {
+                dropdowns.advRecCode.setOptions(results[2].data);
+                dropdowns.dpCode.setOptions(results[2].data);
+                dropdowns.exchCode.setOptions(results[2].data);
             }
-            if (results[4].status === 1) dropdowns.dpChassis.setOptions(results[4].data);
-            if (results[5].status === 1) dropdowns.insChassis.setOptions(results[5].data);
-            if (results[6].status === 1) dropdowns.rtoChassis.setOptions(results[6].data);
-            if (results[7].status === 1) dropdowns.disbChassis.setOptions(results[7].data);
-            if (results[8].status === 1) {
-                dropdowns.advRetCode.setOptions(results[8].data);
-                dropdowns.insCode.setOptions(results[8].data);
-                dropdowns.rtoCode.setOptions(results[8].data);
+            if (results[3].status === 1) dropdowns.dpChassis.setOptions(results[3].data);
+            if (results[4].status === 1) dropdowns.insChassis.setOptions(results[4].data);
+            if (results[5].status === 1) dropdowns.rtoChassis.setOptions(results[5].data);
+            if (results[6].status === 1) dropdowns.disbChassis.setOptions(results[6].data);
+            if (results[7].status === 1) {
+                dropdowns.advRetCode.setOptions(results[7].data);
+                dropdowns.insCode.setOptions(results[7].data);
+                dropdowns.rtoCode.setOptions(results[7].data);
             }
-            if (results[9].status === 1) dropdowns.exchChassis.setOptions(results[9].data);
-            if (results[10].status === 1) dropdowns.disbCode.setOptions(results[10].data);
+            if (results[8].status === 1) dropdowns.exchChassis.setOptions(results[8].data);
+            if (results[9].status === 1) dropdowns.disbCode.setOptions(results[9].data);
 
             setStatus(statusEl);
         } catch (err) {
@@ -256,51 +250,15 @@ const VerifyTransactionForm = (() => {
                 return;
             }
 
-            let dailyTransactionPayload = null;
-            if (code === 3) {
-                const selectedDailyTransactionCode = dropdowns.dpDailyCode.getValue();
-                const [serialNumber] = String(selectedDailyTransactionCode || "").split("-");
-
-                if (!selectedDailyTransactionCode || !serialNumber) {
-                    setStatus(statusEl, "All fields required.", "error");
-                    return;
-                }
-
-                dailyTransactionPayload = {
-                    code: 8,
-                    serialNumber,
-                    verificationChassisNumber: payload.chassis
-                };
-            }
-
             submitButton.disabled = true;
             setStatus(statusEl, "Submitting...", "info", true);
 
             try {
-                if (dailyTransactionPayload) {
-                    const [res, dailyTransactionRes] = await Promise.all([
-                        backendRequest("verifyTransactionForm", payload),
-                        backendRequest("verifyTransactionForm", dailyTransactionPayload)
-                    ]);
-
-                    if (res.status !== 1) {
-                        setStatus(statusEl, res.message || "Failed.", "error");
-                        submitButton.disabled = false;
-                        return;
-                    }
-
-                    if (dailyTransactionRes.status !== 1) {
-                        setStatus(statusEl, dailyTransactionRes.message || "Failed.", "error");
-                        submitButton.disabled = false;
-                        return;
-                    }
-                } else {
-                    const res = await backendRequest("verifyTransactionForm", payload);
-                    if (res.status !== 1) {
-                        setStatus(statusEl, res.message || "Failed.", "error");
-                        submitButton.disabled = false;
-                        return;
-                    }
+                const res = await backendRequest("verifyTransactionForm", payload);
+                if (res.status !== 1) {
+                    setStatus(statusEl, res.message || "Failed.", "error");
+                    submitButton.disabled = false;
+                    return;
                 }
 
                 setStatus(statusEl, "Updated successfully. Refreshing...", "success");
