@@ -1,3 +1,4 @@
-/server/env.gs
+/server/.clasp.json
+/server/env.js
 /client/.env
 /client/node_modules
