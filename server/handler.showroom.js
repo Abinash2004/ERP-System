@@ -3,46 +3,41 @@ function newWalkInForm(data) {
     return { status: 0, message: "invalid payload" };
   }
 
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheet = ss.getSheetByName("FOLLOW UP");
-
-  if (!sheet) {
-    return { status: 0, message: "FOLLOW UP sheet not found" };
-  }
-
-  const nextRow = getFirstEmptyRow(sheet, "A2:A");
   const payload = {
-    "SERIAL NUMBER": nextRow - 1,
-    "VISIT DATE": new Date(),
-    "LOCATION": normalize(data.location),
-    "CUSTOMER NAME": normalize(data.customerName),
-    "MOBILE NUMBER": normalize(data.mobileNumber),
-    "ALTERNATE MOBILE NUMBER": normalize(data.alternateMobileNumber),
-    "ADDRESS": normalize(data.address),
-    "VEHICLE DETAILS": normalize(data.vehicleDetails),
-    "STATUS": "OPENED"
+    visit_date: new Date().toISOString(),
+    location: normalize(data.location),
+    customer_name: normalize(data.customerName),
+    mobile_number: normalize(data.mobileNumber),
+    alternate_mobile_number: normalize(data.alternateMobileNumber),
+    address: normalize(data.address),
+    vehicle_details: normalize(data.vehicleDetails),
+    status: "OPENED"
   };
 
   const requiredFields = [
-    payload["SERIAL NUMBER"],
-    payload["VISIT DATE"],
-    payload["LOCATION"],
-    payload["CUSTOMER NAME"],
-    payload["MOBILE NUMBER"]
+    payload.location,
+    payload.customer_name,
+    payload.mobile_number
   ];
 
   if (requiredFields.some(v => !v)) {
     return { status: 0, message: "some fields are missing" };
   }
 
-  const isDuplicateCustomer = isDuplicateEntry(sheet, payload["MOBILE NUMBER"], FOLLOW_UP["MOBILE NUMBER"]);
+  const response = supabaseRequest("POST", "/rest/v1/follow_up", payload);
 
-  if (isDuplicateCustomer) {
-    return { status: 0, message: "customer with this mobile number already exists"}
+  if (response && response.message && !Array.isArray(response)) {
+    if (
+      response.status === 409 ||
+      String(response.code || "").trim() === "23505" ||
+      /duplicate key value violates unique constraint/i.test(response.message || "")
+    ) {
+      return { status: 0, message: "customer with this mobile number already exists" };
+    }
+    return { status: 0, message: response.message };
   }
 
-  safeWriteRow(sheet, nextRow, payload, FOLLOW_UP);
-  return { status: 1, message: "new walk in data added successfully" };
+  return { status: 1, message: "data added successfully" };
 }
 
 function getFollowUpList(data) {
@@ -50,56 +45,21 @@ function getFollowUpList(data) {
     return { status: 0, message: "invalid payload" };
   }
 
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheet = ss.getSheetByName("FOLLOW UP");
-
-  if (!sheet) {
-    return { status: 0, message: "FOLLOW UP sheet not found" };
-  }
-
-  const nextRow = getFirstEmptyRow(sheet, "A2:A");
-  const lastRow = nextRow - 1;
-
-  if (lastRow < 2) {
-    return { status: 1, message: "success", data: [] };
-  }
-
-  const locationCol = FOLLOW_UP["LOCATION"];
-  const statusCol = FOLLOW_UP["STATUS"];
   const targetBranch = normalize(data.branch);
   const targetStatus = normalizeFollowUpStatus(data.status);
-  const filterByStatus = targetStatus && targetStatus !== "ALL";
+  const offset = (data.page - 1) * data.limit;
 
-  const locationValues = sheet.getRange(2, locationCol, lastRow - 1, 1).getValues();
-  const statusValues = sheet.getRange(2, statusCol, lastRow - 1, 1).getValues();
+  let endpoint = "/rest/v1/follow_up" + "?location=eq." + encodeURIComponent(targetBranch);
+  if (targetStatus && targetStatus !== "ALL") endpoint += "&status=eq." + encodeURIComponent(targetStatus);
+  endpoint += "&order=visit_date.desc,serial_number.desc" + "&limit=" + data.limit + "&offset=" + offset;
 
-  const matchingRowIndexes = [];
-  for (let i = locationValues.length - 1; i >= 0; i--) {
-    const locationMatch = normalize(locationValues[i][0]) === targetBranch;
-    const statusMatch = !filterByStatus || normalizeFollowUpStatus(statusValues[i][0]) === targetStatus;
-    if (locationMatch && statusMatch) {
-      matchingRowIndexes.push(i + 2);
-    }
+  const response = supabaseRequest("GET", endpoint);
+
+  if (!Array.isArray(response)) {
+    return { status: 0, message: response.message };
   }
 
-  const start = (data.page - 1) * data.limit;
-  const end = start + data.limit;
-  const paginatedIndexes = matchingRowIndexes.slice(start, end);
-
-  const resultData = [];
-  const lastColumn = Object.keys(FOLLOW_UP).length;
-
-  for (let i = 0; i < paginatedIndexes.length; i++) {
-    const rowIndex = paginatedIndexes[i];
-    const rowData = sheet.getRange(rowIndex, 1, 1, lastColumn).getValues()[0];
-    resultData.push(rowData);
-  }
-
-  return {
-    status: 1,
-    message: "success",
-    data: resultData
-  };
+  return { status: 1, message: "success", data: response };
 }
 
 function updateFollowUpForm(data) {
@@ -107,54 +67,41 @@ function updateFollowUpForm(data) {
     return { status: 0, message: "invalid payload" };
   }
 
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheet = ss.getSheetByName("FOLLOW UP");
+  const serialNumber = parseInt(data.serialNumber, 10);
 
-  if (!sheet) {
-    return { status: 0, message: "FOLLOW UP sheet not found" };
-  }
+  const existing = supabaseRequest(
+    "GET",
+    "/rest/v1/follow_up?select=first_feedback&serial_number=eq." + serialNumber
+  );
 
-  const serialCol = FOLLOW_UP["SERIAL NUMBER"];
-  const nextRow = getFirstEmptyRow(sheet, "A2:A");
-  const lastRow = nextRow - 1;
-
-  if (lastRow < 2) {
-    return { status: 0, message: "record not found" };
-  }
-
-  const serialValues = sheet.getRange(2, serialCol, lastRow - 1, 1).getValues();
-  let rowIndex = -1;
-  const targetSerial = parseInt(data.serialNumber, 10);
-
-  for (let i = 0; i < serialValues.length; i++) {
-    if (parseInt(serialValues[i][0], 10) === targetSerial) {
-      rowIndex = i + 2;
-      break;
-    }
-  }
-
-  if (rowIndex === -1) {
-    return { status: 0, message: "record not found" };
-  }
-
-  const existingFirstFeedback = sheet.getRange(rowIndex, FOLLOW_UP["FIRST FEEDBACK"]).getValue();
+  if (!Array.isArray(existing)) return { status: 0, message: existing.message };
+  if (!existing.length) return { status: 0, message: "record not found" };
 
   const payload = {
-    "ALTERNATE MOBILE NUMBER": normalize(data.alternateMobileNumber),
-    "ADDRESS": normalize(data.address),
-    "VEHICLE DETAILS": normalize(data.vehicleDetails),
-    "STATUS": normalizeFollowUpStatus(data.status),
-    "REMARKS": normalize(data.remarks)
+    alternate_mobile_number: normalize(data.alternateMobileNumber),
+    address: normalize(data.address),
+    vehicle_details: normalize(data.vehicleDetails),
+    status: normalizeFollowUpStatus(data.status),
+    remarks: normalize(data.remarks)
   };
 
-  if (!existingFirstFeedback) {
-    payload["FIRST FEEDBACK"] = normalize(data.firstFeedback);
-    payload["FIRST FEEDBACK DATE"] = new Date();
+  if (!existing[0].first_feedback) {
+    payload.first_feedback = normalize(data.firstFeedback);
+    payload.first_feedback_date = new Date().toISOString();
   } else {
-    payload["LAST FEEDBACK"] = normalize(data.lastFeedback);
-    payload["LAST FEEDBACK DATE"] = new Date();
+    payload.last_feedback = normalize(data.lastFeedback);
+    payload.last_feedback_date = new Date().toISOString();
   }
 
-  safeWriteRow(sheet, rowIndex, payload, FOLLOW_UP);
+  const response = supabaseRequest(
+    "PATCH",
+    "/rest/v1/follow_up?serial_number=eq." + serialNumber,
+    payload
+  );
+
+  if (!Array.isArray(response)) {
+    return { status: 0, message: response.message };
+  }
+
   return { status: 1, message: "follow up updated successfully" };
 }

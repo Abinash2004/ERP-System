@@ -373,14 +373,20 @@
 
 .ui-table-scroll {
     overflow: auto;
+    -webkit-overflow-scrolling: touch;
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
 }
 
 .ui-table {
-    width: 100%;
+    width: max-content;
+    min-width: 100%;
     border-collapse: collapse;
     background: var(--panel);
+}
+
+.ui-table-card .ui-table {
+    min-width: 100%;
 }
 
 .ui-table th,
@@ -612,5 +618,14 @@
 
     .ui-table-card {
         padding: 24px 20px;
+    }
+
+    .ui-table-scroll {
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+
+    .ui-table {
+        min-width: 1200px;
     }
 }

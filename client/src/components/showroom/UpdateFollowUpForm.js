@@ -1,22 +1,6 @@
 import { backendRequest } from "../../api/index.js";
 import { createFormLayout, createOption, field, formActions, formSection, setStatus, setupFormValidation } from "../ui.js";
 
-const COL = {
-    SERIAL_NUMBER: 0,
-    VISIT_DATE: 1,
-    CUSTOMER_NAME: 3,
-    MOBILE_NUMBER: 4,
-    ALT_MOBILE_NUMBER: 5,
-    ADDRESS: 6,
-    VEHICLE_DETAILS: 7,
-    STATUS: 8,
-    REMARKS: 9,
-    FIRST_FEEDBACK_DATE: 10,
-    FIRST_FEEDBACK: 11,
-    LAST_FEEDBACK_DATE: 12,
-    LAST_FEEDBACK: 13
-};
-
 const UpdateFollowUpForm = (() => {
 
     function normalizeFollowUpStatus(value) {
@@ -46,19 +30,19 @@ const UpdateFollowUpForm = (() => {
     }
 
     function mount(container, rowData, goBack) {
-        const isFirstFeedback = !rowData[COL.FIRST_FEEDBACK];
+        const isFirstFeedback = !rowData.first_feedback;
 
-        const visitDate = rowData[COL.VISIT_DATE]
-            ? new Date(rowData[COL.VISIT_DATE]).toLocaleDateString()
+        const visitDate = rowData.visit_date
+            ? new Date(rowData.visit_date).toLocaleDateString()
             : "";
-        const firstFeedbackDate = rowData[COL.FIRST_FEEDBACK_DATE]
-            ? new Date(rowData[COL.FIRST_FEEDBACK_DATE]).toLocaleDateString()
+        const firstFeedbackDate = rowData.first_feedback_date
+            ? new Date(rowData.first_feedback_date).toLocaleDateString()
             : "";
-        const lastFeedbackDate = rowData[COL.LAST_FEEDBACK_DATE]
-            ? new Date(rowData[COL.LAST_FEEDBACK_DATE]).toLocaleDateString()
+        const lastFeedbackDate = rowData.last_feedback_date
+            ? new Date(rowData.last_feedback_date).toLocaleDateString()
             : "";
 
-        const existingStatus = normalizeFollowUpStatus(rowData[COL.STATUS]);
+        const existingStatus = normalizeFollowUpStatus(rowData.status);
 
         container.innerHTML = `
             <div class="u-stack-md">
@@ -71,20 +55,20 @@ const UpdateFollowUpForm = (() => {
                     body: `
                         ${formSection("Customer Info")}
                         ${field("Visit Date", `<input class="ui-input ui-readonly" type="text" value="${visitDate}" readonly />`)}
-                        ${field("Customer Name", `<input class="ui-input ui-readonly" type="text" value="${rowData[COL.CUSTOMER_NAME] || ""}" readonly />`)}
-                        ${field("Mobile Number", `<input class="ui-input ui-readonly" type="text" value="${rowData[COL.MOBILE_NUMBER] || ""}" readonly />`)}
+                        ${field("Customer Name", `<input class="ui-input ui-readonly" type="text" value="${rowData.customer_name || ""}" readonly />`)}
+                        ${field("Mobile Number", `<input class="ui-input ui-readonly" type="text" value="${rowData.mobile_number || ""}" readonly />`)}
                         ${formSection("Details")}
-                        ${field("Alternate Mobile Number", `<input id="uf-alt-mobile" class="ui-input" type="tel" maxlength="10" value="${rowData[COL.ALT_MOBILE_NUMBER] || ""}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" />`)}
-                        ${field("Address", `<input id="uf-address" class="ui-input" type="text" value="${rowData[COL.ADDRESS] || ""}" />`)}
-                        ${field("Vehicle Details", `<input id="uf-vehicle-details" class="ui-input" type="text" value="${rowData[COL.VEHICLE_DETAILS] || ""}" />`)}
+                        ${field("Alternate Mobile Number", `<input id="uf-alt-mobile" class="ui-input" type="tel" maxlength="10" value="${rowData.alternate_mobile_number || ""}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" />`)}
+                        ${field("Address", `<input id="uf-address" class="ui-input" type="text" value="${rowData.address || ""}" />`)}
+                        ${field("Vehicle Details", `<input id="uf-vehicle-details" class="ui-input" type="text" value="${rowData.vehicle_details || ""}" />`)}
                         ${field("Status", `<select id="uf-status" class="ui-select">${createOption("OPENED", "Opened", existingStatus === "OPENED")}${createOption("CLOSED", "Closed", existingStatus === "CLOSED")}${createOption("PURCHASED", "Purchased", existingStatus === "PURCHASED")}${createOption("BOOKED", "Booked", existingStatus === "BOOKED")}</select>`)}
-                        ${field("Remarks", `<input id="uf-remarks" class="ui-input" type="text" value="${rowData[COL.REMARKS] || ""}" />`)}
+                        ${field("Remarks", `<input id="uf-remarks" class="ui-input" type="text" value="${rowData.remarks || ""}" />`)}
                         ${formSection("Feedback")}
                         ${isFirstFeedback
                             ? feedbackBlock("First Feedback", "", "", { editable: true, id: "uf-first-feedback", required: true, placeholder: "Enter feedback..." })
                             : `
-                                ${feedbackBlock("First Feedback", rowData[COL.FIRST_FEEDBACK] || "", firstFeedbackDate)}
-                                ${feedbackBlock("Last Feedback", rowData[COL.LAST_FEEDBACK] || "", lastFeedbackDate, { editable: true, id: "uf-last-feedback", required: true, placeholder: "Enter latest feedback..." })}
+                                ${feedbackBlock("First Feedback", rowData.first_feedback || "", firstFeedbackDate)}
+                                ${feedbackBlock("Last Feedback", rowData.last_feedback || "", lastFeedbackDate, { editable: true, id: "uf-last-feedback", required: true, placeholder: "Enter latest feedback..." })}
                             `}
                         ${formActions("uf-submit", "uf-status-msg")}
                     `
@@ -118,7 +102,7 @@ const UpdateFollowUpForm = (() => {
             }
 
             const payload = {
-                serialNumber: rowData[COL.SERIAL_NUMBER],
+                serialNumber: rowData.serial_number,
                 alternateMobileNumber: container.querySelector("#uf-alt-mobile").value.trim(),
                 address: container.querySelector("#uf-address").value.trim(),
                 vehicleDetails: container.querySelector("#uf-vehicle-details").value.trim(),
