@@ -2,7 +2,7 @@ import { backendRequest } from "../../api/index.js";
 import { UpdateFollowUpForm } from "./UpdateFollowUpForm.js";
 import { panelHeader, setStatus } from "../ui.js";
 
-const LIMIT = 10;
+const LIMIT = 20;
 
 function normalizeFollowUpStatus(value) {
     const status = String(value || "").trim().toUpperCase();
@@ -28,7 +28,7 @@ const FollowUpList = (() => {
 
         function showList() {
             container.innerHTML = `
-                <section class="ui-table-card ui-table-card--tight">
+                <section class="ui-table-card ui-table-card--tight ui-follow-up-view">
                     ${panelHeader("Follow Up Customer List", '<select id="fup-status-filter" class="ui-select ui-select--compact"><option value="ALL">All</option><option value="OPENED">Opened</option><option value="CLOSED">Closed</option><option value="PURCHASED">Purchased</option><option value="BOOKED">Booked</option></select>')}
                     <div id="fup-status" class="ui-status" role="status" aria-live="polite"></div>
                     <div class="ui-table-scroll">
