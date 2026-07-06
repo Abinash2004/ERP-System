@@ -1,5 +1,5 @@
 import { backendRequest } from "../../api/index.js";
-import { createFormLayout, createOption, field, formActions, formSection, setStatus, setupFormValidation } from "../ui.js";
+import { createFormLayout, createOption, field, formActions, setStatus, setupFormValidation } from "../ui.js";
 
 const UpdateFollowUpForm = (() => {
 
@@ -53,17 +53,13 @@ const UpdateFollowUpForm = (() => {
                     id: "uf-form",
                     title: "Customer Follow Up",
                     body: `
-                        ${formSection("Customer Info")}
                         ${field("Visit Date", `<input class="ui-input ui-readonly" type="text" value="${visitDate}" readonly />`)}
                         ${field("Customer Name", `<input class="ui-input ui-readonly" type="text" value="${rowData.customer_name || ""}" readonly />`)}
                         ${field("Mobile Number", `<input class="ui-input ui-readonly" type="text" value="${rowData.mobile_number || ""}" readonly />`)}
-                        ${formSection("Details")}
-                        ${field("Alternate Mobile Number", `<input id="uf-alt-mobile" class="ui-input" type="tel" maxlength="10" value="${rowData.alternate_mobile_number || ""}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" />`)}
                         ${field("Address", `<input id="uf-address" class="ui-input" type="text" value="${rowData.address || ""}" />`)}
                         ${field("Vehicle Details", `<input id="uf-vehicle-details" class="ui-input" type="text" value="${rowData.vehicle_details || ""}" />`)}
                         ${field("Status", `<select id="uf-status" class="ui-select">${createOption("OPENED", "Opened", existingStatus === "OPENED")}${createOption("CLOSED", "Closed", existingStatus === "CLOSED")}${createOption("PURCHASED", "Purchased", existingStatus === "PURCHASED")}${createOption("BOOKED", "Booked", existingStatus === "BOOKED")}</select>`)}
                         ${field("Remarks", `<input id="uf-remarks" class="ui-input" type="text" value="${rowData.remarks || ""}" />`)}
-                        ${formSection("Feedback")}
                         ${isFirstFeedback
                             ? feedbackBlock("First Feedback", "", "", { editable: true, id: "uf-first-feedback", required: true, placeholder: "Enter feedback..." })
                             : `
@@ -103,7 +99,6 @@ const UpdateFollowUpForm = (() => {
 
             const payload = {
                 serialNumber: rowData.serial_number,
-                alternateMobileNumber: container.querySelector("#uf-alt-mobile").value.trim(),
                 address: container.querySelector("#uf-address").value.trim(),
                 vehicleDetails: container.querySelector("#uf-vehicle-details").value.trim(),
                 status: container.querySelector("#uf-status").value,

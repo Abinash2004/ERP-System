@@ -10,7 +10,6 @@ const NewWalkInForm = (() => {
             body: `
                 ${field("Customer Name", '<input id="nwi-customer-name" class="ui-input" type="text" placeholder="Enter customer name" required />', { required: true })}
                 ${field("Mobile Number", '<input id="nwi-mobile-number" class="ui-input" type="tel" maxlength="10" placeholder="Enter 10-digit mobile number" oninput="this.value = this.value.replace(/[^0-9]/g, \"\")" required />', { required: true })}
-                ${field("Alternate Mobile Number", '<input id="nwi-alt-mobile-number" class="ui-input" type="tel" maxlength="10" placeholder="Enter 10-digit alternate mobile number" oninput="this.value = this.value.replace(/[^0-9]/g, \"\")" />')}
                 ${field("Address", '<input id="nwi-address" class="ui-input" type="text" placeholder="Enter address" />', { full: true })}
                 ${field("Vehicle Details", '<input id="nwi-vehicle-details" class="ui-input" type="text" placeholder="Enter vehicle details" />', { full: true })}
                 ${formActions("nwi-submit", "nwi-status")}
@@ -19,7 +18,6 @@ const NewWalkInForm = (() => {
 
         const customerNameInput = container.querySelector("#nwi-customer-name");
         const mobileNumberInput = container.querySelector("#nwi-mobile-number");
-        const altMobileNumberInput = container.querySelector("#nwi-alt-mobile-number");
         const addressInput = container.querySelector("#nwi-address");
         const vehicleDetailsInput = container.querySelector("#nwi-vehicle-details");
         const submitButton = container.querySelector("#nwi-submit");
@@ -33,7 +31,6 @@ const NewWalkInForm = (() => {
 
             const customerName = customerNameInput.value.trim();
             const mobileNumber = mobileNumberInput.value.trim();
-            const alternateMobileNumber = altMobileNumberInput.value.trim();
             const address = addressInput.value.trim();
             const vehicleDetails = vehicleDetailsInput.value.trim();
 
@@ -48,16 +45,10 @@ const NewWalkInForm = (() => {
                 return;
             }
 
-            if (alternateMobileNumber && !phoneRegex.test(alternateMobileNumber)) {
-                setStatus(statusEl, "Please enter a valid 10-digit Alternate Mobile Number.", "error");
-                return;
-            }
-
             const payload = {
                 location: session.branch,
                 customerName,
                 mobileNumber,
-                alternateMobileNumber,
                 address,
                 vehicleDetails
             };

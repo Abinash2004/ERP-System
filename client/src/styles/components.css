@@ -660,20 +660,20 @@
 
     .ui-table th,
     .ui-table td {
-        padding: 8px 10px;
+        padding: 7px 8px;
         font-size: 13px;
     }
 
     .ui-follow-status {
-        min-width: 88px;
-        min-height: 24px;
-        padding: 0 8px;
+        min-width: 84px;
+        min-height: 22px;
+        padding: 0 7px;
         font-size: 11px;
     }
 
     .ui-phone-btn {
-        width: 28px;
-        height: 28px;
-        margin-left: 4px;
+        width: 26px;
+        height: 26px;
+        margin-left: 3px;
     }
 }
