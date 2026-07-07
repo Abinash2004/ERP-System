@@ -34,7 +34,13 @@ export function renderLogin() {
             }
 
             await setSession(role, branch);
-            navigateTo(role === "accounts" ? "/accounts" : "/showroom");
+            if (role === "accounts") {
+                navigateTo("/accounts");
+            } else if (role === "admin") {
+                navigateTo("/admin");
+            } else {
+                navigateTo("/showroom");
+            }
         } catch {
             setStatus(errorEl, "Server unreachable. Try again.", "error");
         }

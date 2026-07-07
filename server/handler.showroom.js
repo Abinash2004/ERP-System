@@ -41,15 +41,18 @@ function newWalkInForm(data) {
 }
 
 function getFollowUpList(data) {
-  if (!data || !data.branch || !data.page || !data.limit) {
+  if (!data || !data.page || !data.limit) {
     return { status: 0, message: "invalid payload" };
   }
 
-  const targetBranch = normalize(data.branch);
   const targetStatus = normalizeFollowUpStatus(data.status);
   const offset = (data.page - 1) * data.limit;
 
-  let endpoint = "/rest/v1/follow_up" + "?location=eq." + encodeURIComponent(targetBranch);
+  let endpoint = "/rest/v1/follow_up?select=*";
+  if (data.branch && String(data.branch).trim() !== "ALL") {
+    const targetBranch = normalize(data.branch);
+    endpoint += "&location=eq." + encodeURIComponent(targetBranch);
+  }
   if (targetStatus && targetStatus !== "ALL") endpoint += "&status=eq." + encodeURIComponent(targetStatus);
   endpoint += "&order=visit_date.desc,serial_number.desc" + "&limit=" + data.limit + "&offset=" + offset;
 

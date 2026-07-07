@@ -3,6 +3,7 @@ import { UpdateFollowUpForm } from "./UpdateFollowUpForm.js";
 import { panelHeader, setStatus } from "../ui.js";
 
 const LIMIT = 20;
+const BRANCHES = ["ASKA", "MOHANA", "SURADA", "SURADA-B"];
 
 function normalizeFollowUpStatus(value) {
     const status = String(value || "").trim().toUpperCase();
@@ -25,11 +26,17 @@ const FollowUpList = (() => {
         let page = 1;
         let hasMore = true;
         let currentStatus = "ALL";
+        let currentBranch = session.role === "admin" ? "ALL" : session.branch;
 
         function showList() {
             container.innerHTML = `
                 <section class="ui-table-card ui-table-card--tight ui-follow-up-view">
-                    ${panelHeader("Follow Up Customer List", '<select id="fup-status-filter" class="ui-select ui-select--compact"><option value="ALL">All</option><option value="OPENED">Opened</option><option value="CLOSED">Closed</option><option value="PURCHASED">Purchased</option><option value="BOOKED">Booked</option></select>')}
+                    ${panelHeader("Follow Up Customer List", `
+                        <div class="u-flex" style="gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
+                            ${session.role === "admin" ? '<select id="fup-branch-filter" class="ui-select ui-select--compact"><option value="ALL">All Branches</option>' + BRANCHES.map(branch => `<option value="${branch}">${branch}</option>`).join("") + '</select>' : ""}
+                            <select id="fup-status-filter" class="ui-select ui-select--compact"><option value="ALL">All</option><option value="OPENED">Opened</option><option value="CLOSED">Closed</option><option value="PURCHASED">Purchased</option><option value="BOOKED">Booked</option></select>
+                        </div>
+                    `)}
                     <div id="fup-status" class="ui-status" role="status" aria-live="polite"></div>
                     <div class="ui-table-scroll">
                         <table class="ui-table" id="follow-up-table">
@@ -65,6 +72,7 @@ const FollowUpList = (() => {
             const nextBtn = container.querySelector("#fup-next");
             const pageInfo = container.querySelector("#fup-page-info");
             const statusFilter = container.querySelector("#fup-status-filter");
+            const branchFilter = container.querySelector("#fup-branch-filter");
             const statusEl = container.querySelector("#fup-status");
 
             async function loadPage() {
@@ -75,7 +83,7 @@ const FollowUpList = (() => {
 
                 try {
                     const res = await backendRequest("getFollowUpList", {
-                        branch: session.branch,
+                        branch: currentBranch,
                         page,
                         limit: LIMIT,
                         status: currentStatus
@@ -158,6 +166,15 @@ const FollowUpList = (() => {
                 page = 1;
                 loadPage();
             });
+
+            if (branchFilter) {
+                branchFilter.value = currentBranch;
+                branchFilter.addEventListener("change", () => {
+                    currentBranch = branchFilter.value;
+                    page = 1;
+                    loadPage();
+                });
+            }
 
             prevBtn.addEventListener("click", () => {
                 if (page > 1) {

@@ -27,7 +27,7 @@ const DRIVE_URLS_BY_BRANCH = {
 };
 
 export function getSheetUrlForSession(session = {}) {
-    if (session.role === "accounts") {
+    if (session.role === "accounts" || session.role === "admin") {
         return ACCOUNT_SHEET_URL;
     }
 

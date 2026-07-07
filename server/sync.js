@@ -7,23 +7,7 @@ function syncSheet() {
       return { status: 0, message: "sync failed" };
     }
 
-    const targets = SYNC_TARGETS.filter(target => target.spreadsheetId);
-    if (!targets.length) {
-      Logger.log("syncSheet: no spreadsheet IDs configured");
-      return { status: 0, message: "no sync targets configured" };
-    }
-
-    for (const target of targets) {
-      try {
-        syncTargetSheet(target, records);
-      } catch (err) {
-        Logger.log(
-          "syncSheet: branch=%s error=%s",
-          target.branch,
-          err && err.stack ? err.stack : err
-        );
-      }
-    }
+    syncMainFollowUpSheet(records);
 
     return { status: 1, message: "sync completed" };
   } catch (err) {
@@ -32,19 +16,18 @@ function syncSheet() {
   }
 }
 
-function syncTargetSheet(target, records) {
-  const ss = SpreadsheetApp.openById(target.spreadsheetId);
+function syncMainFollowUpSheet(records) {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   const sheet = getSyncSheetByName(ss, SYNC_FOLLOW_UP_SHEET_NAME);
   if (!sheet) {
-    Logger.log("syncTargetSheet: sheet not found for branch %s", target.branch);
+    Logger.log("syncMainFollowUpSheet: sheet not found");
     return;
   }
 
   ensureHeader(sheet, FOLLOW_UP_COLUMNS);
   clearSheetData(sheet);
 
-  const branchRecords = records.filter(record => normalize(record.location) === normalize(target.branch));
-  const values = buildSheetValues(branchRecords, FOLLOW_UP_SCHEMA);
+  const values = buildSheetValues(records, FOLLOW_UP_SCHEMA);
   writeSheetData(sheet, values);
 }
 
