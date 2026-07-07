@@ -3,7 +3,7 @@ import { UpdateFollowUpForm } from "./UpdateFollowUpForm.js";
 import { panelHeader, setStatus } from "../ui.js";
 
 const LIMIT = 20;
-const BRANCHES = ["ASKA", "MOHANA", "SURADA", "SURADA-B"];
+const BRANCHES = ["ASKA", "MOHANA", "SURADA"];
 
 function normalizeFollowUpStatus(value) {
     const status = String(value || "").trim().toUpperCase();
