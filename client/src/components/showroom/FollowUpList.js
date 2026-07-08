@@ -21,6 +21,32 @@ const FollowUpList = (() => {
         return Number.isNaN(date.getTime()) ? "" : date.toLocaleDateString();
     }
 
+    function escapeHtml(value) {
+        return String(value ?? "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#39;");
+    }
+
+    function renderOverflowCell(value) {
+        const text = String(value ?? "").trim();
+        if (!text) {
+            return `<span class="ui-overflow-cell ui-overflow-cell--empty">-</span>`;
+        }
+
+        const escaped = escapeHtml(text);
+        return `
+            <span class="ui-overflow-cell" data-ui-overflow-text="${escaped}">
+                <span class="ui-overflow-cell__text">${escaped}</span>
+                <button class="ui-overflow-cell__more" type="button" aria-expanded="false" hidden>
+                    [more]
+                </button>
+            </span>
+        `;
+    }
+
     async function mount(container, session) {
         let page = 1;
         let hasMore = true;
@@ -28,10 +54,12 @@ const FollowUpList = (() => {
         let currentStatus = "ALL";
         let currentBranch = session.role === "admin" ? "ALL" : session.branch;
         let scrollCleanup = null;
+        const hoverQuery = window.matchMedia("(hover: hover) and (pointer: fine)");
 
         function renderRow(row) {
             const tr = document.createElement("tr");
             tr.className = "ui-table-row";
+            const serialNumber = row.serial_number ?? row.serialNumber ?? "";
             const visitDate = formatDate(row.visit_date || row.visitDate || row.created_at);
             const firstFeedbackDate = formatDate(row.first_feedback_date);
             const lastFeedbackDate = formatDate(row.last_feedback_date);
@@ -45,6 +73,7 @@ const FollowUpList = (() => {
                         : "warning";
 
             tr.innerHTML = `
+                <td>${serialNumber}</td>
                 <td>${visitDate}</td>
                 <td>${row.location || ""}</td>
                 <td>${row.customer_name || ""}</td>
@@ -66,13 +95,16 @@ const FollowUpList = (() => {
                 <td>${row.address || ""}</td>
                 <td>${row.vehicle_details || ""}</td>
                 <td><span class="ui-follow-status ui-follow-status--${statusVariant}">${followUpStatus}</span></td>
-                <td>${row.remarks || ""}</td>
+                <td class="ui-overflow-col">${renderOverflowCell(row.remarks)}</td>
                 <td>${firstFeedbackDate}</td>
-                <td>${row.first_feedback || ""}</td>
+                <td class="ui-overflow-col">${renderOverflowCell(row.first_feedback)}</td>
                 <td>${lastFeedbackDate}</td>
-                <td>${row.last_feedback || ""}</td>
+                <td class="ui-overflow-col">${renderOverflowCell(row.last_feedback)}</td>
             `;
-            tr.addEventListener("click", () => showForm(row));
+            tr.addEventListener("click", (event) => {
+                if (event.target.closest(".ui-overflow-cell")) return;
+                showForm(row);
+            });
             return tr;
         }
 
@@ -81,7 +113,7 @@ const FollowUpList = (() => {
                 <section class="ui-table-card ui-table-card--tight ui-follow-up-view">
                     ${panelHeader("Follow Up Customer List", `
                         <div class="u-flex" style="gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
-                            ${session.role === "admin" ? '<select id="fup-branch-filter" class="ui-select ui-select--compact"><option value="ALL">All Branches</option>' + BRANCHES.map(branch => `<option value="${branch}">${branch}</option>`).join("") + '</select>' : ""}
+                            ${session.role === "admin" ? '<select id="fup-branch-filter" class="ui-select ui-select--compact"><option value="ALL">All</option>' + BRANCHES.map(branch => `<option value="${branch}">${branch}</option>`).join("") + '</select>' : ""}
                             <select id="fup-status-filter" class="ui-select ui-select--compact"><option value="ALL">All</option><option value="OPENED">Opened</option><option value="CLOSED">Closed</option><option value="PURCHASED">Purchased</option><option value="BOOKED">Booked</option></select>
                         </div>
                     `)}
@@ -90,6 +122,7 @@ const FollowUpList = (() => {
                         <table class="ui-table" id="follow-up-table">
                             <thead>
                                 <tr>
+                                    <th>Serial No.</th>
                                     <th>Visit Date</th>
                                     <th>Location</th>
                                     <th>Customer Name</th>
@@ -107,14 +140,121 @@ const FollowUpList = (() => {
                             <tbody id="follow-up-tbody"></tbody>
                         </table>
                     </div>
+                    <div class="ui-overflow-layer" aria-hidden="true">
+                        <div class="ui-overflow-popover" role="dialog" aria-hidden="true"></div>
+                    </div>
                 </section>
             `;
 
             const tbody = container.querySelector("#follow-up-tbody");
             const tableScroll = container.querySelector(".ui-table-scroll");
+            const overflowLayer = container.querySelector(".ui-overflow-layer");
+            const overflowPopover = container.querySelector(".ui-overflow-popover");
             const statusFilter = container.querySelector("#fup-status-filter");
             const branchFilter = container.querySelector("#fup-branch-filter");
             const statusEl = container.querySelector("#fup-status");
+
+            function syncOverflowButtons() {
+                const cells = container.querySelectorAll(".ui-overflow-cell");
+                cells.forEach((cell) => {
+                    const textEl = cell.querySelector(".ui-overflow-cell__text");
+                    const button = cell.querySelector(".ui-overflow-cell__more");
+                    if (!textEl || !button) return;
+
+                    const isOverflowing = textEl.scrollWidth > textEl.clientWidth + 1;
+                    button.hidden = !isOverflowing;
+                    cell.classList.toggle("is-truncated", isOverflowing);
+                });
+            }
+
+            function closeAllPopovers() {
+                container.querySelectorAll(".ui-overflow-cell.is-open").forEach((cell) => {
+                    cell.classList.remove("is-open");
+                    const button = cell.querySelector(".ui-overflow-cell__more");
+                    button?.setAttribute("aria-expanded", "false");
+                });
+                overflowLayer?.setAttribute("aria-hidden", "true");
+                overflowPopover?.setAttribute("aria-hidden", "true");
+                overflowPopover?.replaceChildren();
+            }
+
+            function openPopover(cell, triggerButton) {
+                if (!overflowPopover || !overflowLayer) return;
+
+                const textEl = cell.querySelector(".ui-overflow-cell__text");
+                const text = textEl?.textContent || "";
+                closeAllPopovers();
+                cell.classList.add("is-open");
+                triggerButton.setAttribute("aria-expanded", "true");
+                overflowLayer.setAttribute("aria-hidden", "false");
+                overflowPopover.setAttribute("aria-hidden", "false");
+                overflowPopover.textContent = text;
+
+                const rect = triggerButton.getBoundingClientRect();
+                const popoverWidth = Math.min(420, window.innerWidth - 24);
+                const centeredLeft = rect.left + (rect.width / 2);
+                const left = Math.max(12 + popoverWidth / 2, Math.min(window.innerWidth - 12 - popoverWidth / 2, centeredLeft));
+                const top = Math.min(window.innerHeight - 16, rect.top - 12);
+                const bottom = top < 56 ? Math.min(window.innerHeight - 16, rect.bottom + 8) : null;
+
+                overflowPopover.style.left = `${left}px`;
+                overflowPopover.style.transform = "translateX(-50%)";
+                if (bottom !== null) {
+                    overflowPopover.style.top = `${bottom}px`;
+                    overflowPopover.style.bottom = "auto";
+                } else {
+                    overflowPopover.style.top = `${top}px`;
+                    overflowPopover.style.bottom = "auto";
+                }
+            }
+
+            const onCellClick = (event) => {
+                const button = event.target.closest(".ui-overflow-cell__more");
+                if (button) {
+                    const cell = button.closest(".ui-overflow-cell");
+                    if (!cell) return;
+
+                    event.preventDefault();
+                    event.stopPropagation();
+                    openPopover(cell, button);
+                    return;
+                }
+
+                if (!event.target.closest(".ui-overflow-popover")) {
+                    closeAllPopovers();
+                }
+            };
+
+            const onCellHover = (event) => {
+                if (!hoverQuery.matches) return;
+                const cell = event.target.closest(".ui-overflow-cell");
+                if (!cell) return;
+                const button = cell.querySelector(".ui-overflow-cell__more");
+                if (!button || button.hidden) return;
+
+                openPopover(cell, button);
+            };
+
+            const onCellLeave = (event) => {
+                if (!hoverQuery.matches) return;
+                const cell = event.target.closest(".ui-overflow-cell");
+                if (!cell) return;
+                const related = event.relatedTarget;
+                if (related && cell.contains(related)) return;
+                closeAllPopovers();
+            };
+
+            const onKeyDown = (event) => {
+                if (event.key === "Escape") {
+                    closeAllPopovers();
+                }
+            };
+
+            container.addEventListener("click", onCellClick);
+            container.addEventListener("mouseover", onCellHover);
+            container.addEventListener("mouseout", onCellLeave);
+            container.addEventListener("keydown", onKeyDown);
+            window.addEventListener("resize", closeAllPopovers);
 
             async function loadPage({ reset = false } = {}) {
                 if (isLoading) return;
@@ -144,9 +284,10 @@ const FollowUpList = (() => {
                     }
 
                     if (page === 1 && rows.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="12">No records found.</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="13">No records found.</td></tr>';
                     } else if (rows.length > 0) {
                         rows.forEach(row => tbody.appendChild(renderRow(row)));
+                        requestAnimationFrame(syncOverflowButtons);
                     }
 
                     setStatus(statusEl);
@@ -189,9 +330,17 @@ const FollowUpList = (() => {
             };
 
             tableScroll.addEventListener("scroll", onScroll, { passive: true });
-            scrollCleanup = () => tableScroll.removeEventListener("scroll", onScroll);
+            scrollCleanup = () => {
+                tableScroll.removeEventListener("scroll", onScroll);
+                window.removeEventListener("resize", closeAllPopovers);
+                container.removeEventListener("click", onCellClick);
+                container.removeEventListener("mouseover", onCellHover);
+                container.removeEventListener("mouseout", onCellLeave);
+                container.removeEventListener("keydown", onKeyDown);
+            };
 
             loadPage({ reset: true });
+            requestAnimationFrame(() => requestAnimationFrame(syncOverflowButtons));
         }
 
         function showForm(rowData) {
@@ -200,6 +349,7 @@ const FollowUpList = (() => {
                 scrollCleanup();
                 scrollCleanup = null;
             }
+            container.replaceChildren();
             UpdateFollowUpForm.mount(container, rowData, () => {
                 showList();
             });
