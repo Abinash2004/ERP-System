@@ -7,6 +7,18 @@ export function renderLogin() {
     const form = document.getElementById("login-form");
     setupFormValidation(form);
 
+    const toggleBtn = document.getElementById("toggle-password");
+    const passcodeEl = document.getElementById("passcode");
+    const wrapper = passcodeEl?.closest(".ui-password-wrapper");
+
+    toggleBtn?.addEventListener("click", () => {
+        const isVisible = wrapper?.getAttribute("data-visible") === "true";
+        wrapper?.setAttribute("data-visible", isVisible ? "false" : "true");
+        if (passcodeEl) {
+            passcodeEl.type = isVisible ? "password" : "text";
+        }
+    });
+
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
         const passcode = document.getElementById("passcode").value.trim();

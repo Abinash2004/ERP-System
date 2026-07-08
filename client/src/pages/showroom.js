@@ -2,7 +2,7 @@ import { clearSession } from "../services/session.js";
 import { NewWalkInForm } from "../components/showroom/NewWalkInForm.js";
 import { FollowUpList } from "../components/showroom/FollowUpList.js";
 import { initResponsiveSidebar, renderSidebarLayout, renderWelcomeState } from "../components/ui.js";
-import { getSheetUrlForSession, getDriveUrlForSession } from "../config/index.js";
+import { getDriveUrlForSession } from "../config/index.js";
 
 const FORMS = [
     { label: "New Walk In", component: NewWalkInForm },
@@ -10,7 +10,6 @@ const FORMS = [
 ];
 
 export function renderShowroom(session) {
-    const sheetUrl = getSheetUrlForSession(session);
     const driveUrl = getDriveUrlForSession(session);
 
     document.getElementById("app").innerHTML = renderSidebarLayout({
@@ -19,7 +18,7 @@ export function renderShowroom(session) {
         listId: "form-list",
         contentId: "showroom-content",
         emptyContent: renderWelcomeState(`<span class="ui-welcome-state__accent">${session.branch}</span> Team`),
-        showViewSheetButton: Boolean(sheetUrl),
+        showViewSheetButton: false,
         showViewDriveButton: Boolean(driveUrl)
     });
 
@@ -51,10 +50,6 @@ export function renderShowroom(session) {
 
     document.getElementById("view-drive")?.addEventListener("click", () => {
         window.open(driveUrl, "_blank", "noopener,noreferrer");
-    });
-
-    document.getElementById("view-sheet")?.addEventListener("click", () => {
-        window.open(sheetUrl, "_blank", "noopener,noreferrer");
     });
 
     document.getElementById("logout").addEventListener("click", () => {

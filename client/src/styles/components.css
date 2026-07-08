@@ -791,3 +791,48 @@
         max-width: calc(100vw - 24px);
     }
 }
+
+/* Password Visibility Toggle */
+.ui-password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.ui-password-wrapper .ui-input {
+    padding-right: 42px;
+}
+
+.ui-password-toggle {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    color: var(--text-soft);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s ease;
+}
+
+.ui-password-toggle:hover {
+    color: var(--text-primary);
+}
+
+.ui-password-toggle svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+.ui-password-wrapper[data-visible="true"] .eye-icon {
+    display: none;
+}
+
+.ui-password-wrapper:not([data-visible="true"]) .eye-off-icon {
+    display: none;
+}
