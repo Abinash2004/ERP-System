@@ -378,10 +378,6 @@
     max-height: none;
 }
 
-.ui-follow-up-view .ui-pagination {
-    flex: 0 0 auto;
-}
-
 .ui-table-card--tight .ui-panel-header {
     margin-bottom: 0;
 }
@@ -443,13 +439,6 @@
 
 .ui-table-row:hover {
     background: var(--hover);
-}
-
-.ui-pagination {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-3);
 }
 
 .ui-badge,
