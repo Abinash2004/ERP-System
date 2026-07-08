@@ -59,7 +59,7 @@ const FollowUpList = (() => {
         let currentBranch = session.role === "admin" ? "ALL" : session.branch;
         let scrollCleanup = null;
         const hoverQuery = window.matchMedia("(hover: hover) and (pointer: fine)");
-        const isInteractive = session.role !== "admin" && session.role !== "accounts";
+        const isInteractive = session.role !== "accounts";
 
         function renderRow(row) {
             const tr = document.createElement("tr");
