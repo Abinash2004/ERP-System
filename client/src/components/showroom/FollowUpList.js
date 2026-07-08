@@ -18,7 +18,11 @@ const FollowUpList = (() => {
     function formatDate(value) {
         if (!value) return "";
         const date = new Date(value);
-        return Number.isNaN(date.getTime()) ? "" : date.toLocaleDateString();
+        if (Number.isNaN(date.getTime())) return "";
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
     }
 
     function escapeHtml(value) {
@@ -330,9 +334,11 @@ const FollowUpList = (() => {
             };
 
             tableScroll.addEventListener("scroll", onScroll, { passive: true });
+            window.addEventListener("scroll", closeAllPopovers, { passive: true, capture: true });
             scrollCleanup = () => {
                 tableScroll.removeEventListener("scroll", onScroll);
                 window.removeEventListener("resize", closeAllPopovers);
+                window.removeEventListener("scroll", closeAllPopovers, { capture: true });
                 container.removeEventListener("click", onCellClick);
                 container.removeEventListener("mouseover", onCellHover);
                 container.removeEventListener("mouseout", onCellLeave);

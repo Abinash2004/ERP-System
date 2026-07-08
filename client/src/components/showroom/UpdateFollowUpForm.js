@@ -32,15 +32,19 @@ const UpdateFollowUpForm = (() => {
     function mount(container, rowData, goBack) {
         const isFirstFeedback = !rowData.first_feedback;
 
-        const visitDate = rowData.visit_date
-            ? new Date(rowData.visit_date).toLocaleDateString()
-            : "";
-        const firstFeedbackDate = rowData.first_feedback_date
-            ? new Date(rowData.first_feedback_date).toLocaleDateString()
-            : "";
-        const lastFeedbackDate = rowData.last_feedback_date
-            ? new Date(rowData.last_feedback_date).toLocaleDateString()
-            : "";
+        function formatDate(value) {
+            if (!value) return "";
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return "";
+            const day = String(date.getDate()).padStart(2, "0");
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        const visitDate = formatDate(rowData.visit_date);
+        const firstFeedbackDate = formatDate(rowData.first_feedback_date);
+        const lastFeedbackDate = formatDate(rowData.last_feedback_date);
 
         const existingStatus = normalizeFollowUpStatus(rowData.status);
 
