@@ -63,7 +63,6 @@ const UpdateFollowUpForm = (() => {
                         ${field("Address", `<input id="uf-address" class="ui-input" type="text" value="${rowData.address || ""}" />`)}
                         ${field("Vehicle Details", `<input id="uf-vehicle-details" class="ui-input" type="text" value="${rowData.vehicle_details || ""}" />`)}
                         ${field("Status", `<select id="uf-status" class="ui-select">${createOption("OPENED", "Opened", existingStatus === "OPENED")}${createOption("CLOSED", "Closed", existingStatus === "CLOSED")}${createOption("PURCHASED", "Purchased", existingStatus === "PURCHASED")}${createOption("BOOKED", "Booked", existingStatus === "BOOKED")}</select>`)}
-                        ${field("Remarks", `<input id="uf-remarks" class="ui-input" type="text" value="${rowData.remarks || ""}" />`)}
                         ${isFirstFeedback
                             ? feedbackBlock("First Feedback", "", "", { editable: true, id: "uf-first-feedback", required: true, placeholder: "Enter feedback..." })
                             : `
@@ -106,7 +105,6 @@ const UpdateFollowUpForm = (() => {
                 address: container.querySelector("#uf-address").value.trim(),
                 vehicleDetails: container.querySelector("#uf-vehicle-details").value.trim(),
                 status: container.querySelector("#uf-status").value,
-                remarks: container.querySelector("#uf-remarks").value.trim(),
                 firstFeedback: firstFeedback || "",
                 lastFeedback: lastFeedback || ""
             };

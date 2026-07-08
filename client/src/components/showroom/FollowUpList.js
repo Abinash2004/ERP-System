@@ -99,7 +99,6 @@ const FollowUpList = (() => {
                 <td>${row.address || ""}</td>
                 <td>${row.vehicle_details || ""}</td>
                 <td><span class="ui-follow-status ui-follow-status--${statusVariant}">${followUpStatus}</span></td>
-                <td class="ui-overflow-col">${renderOverflowCell(row.remarks)}</td>
                 <td>${firstFeedbackDate}</td>
                 <td class="ui-overflow-col">${renderOverflowCell(row.first_feedback)}</td>
                 <td>${lastFeedbackDate}</td>
@@ -134,7 +133,6 @@ const FollowUpList = (() => {
                                     <th>Address</th>
                                     <th>Vehicle Details</th>
                                     <th>Follow Up Status</th>
-                                    <th>Remarks</th>
                                     <th>First Feedback Date</th>
                                     <th>First Feedback</th>
                                     <th>Last Feedback Date</th>
@@ -288,7 +286,7 @@ const FollowUpList = (() => {
                     }
 
                     if (page === 1 && rows.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="13">No records found.</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="12">No records found.</td></tr>';
                     } else if (rows.length > 0) {
                         rows.forEach(row => tbody.appendChild(renderRow(row)));
                         requestAnimationFrame(syncOverflowButtons);

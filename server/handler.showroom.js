@@ -8,7 +8,6 @@ function newWalkInForm(data) {
     location: normalize(data.location),
     customer_name: normalize(data.customerName),
     mobile_number: normalize(data.mobileNumber),
-    alternate_mobile_number: normalize(data.alternateMobileNumber),
     address: normalize(data.address),
     vehicle_details: normalize(data.vehicleDetails),
     status: "OPENED"
@@ -81,11 +80,9 @@ function updateFollowUpForm(data) {
   if (!existing.length) return { status: 0, message: "record not found" };
 
   const payload = {
-    alternate_mobile_number: normalize(data.alternateMobileNumber),
     address: normalize(data.address),
     vehicle_details: normalize(data.vehicleDetails),
-    status: normalizeFollowUpStatus(data.status),
-    remarks: normalize(data.remarks)
+    status: normalizeFollowUpStatus(data.status)
   };
 
   if (!existing[0].first_feedback) {
