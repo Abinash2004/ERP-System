@@ -146,9 +146,9 @@ const FollowUpList = (() => {
                                     <th>Address</th>
                                     <th>Vehicle Details</th>
                                     <th>Follow Up Status</th>
-                                    <th>First Feedback Date</th>
+                                    <th>First Date</th>
                                     <th>First Feedback</th>
-                                    <th>Last Feedback Date</th>
+                                    <th>Last Date</th>
                                     <th>Last Feedback</th>
                                     ${isInteractive ? '<th>Actions</th>' : ""}
                                 </tr>
