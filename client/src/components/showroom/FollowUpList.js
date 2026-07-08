@@ -59,10 +59,10 @@ const FollowUpList = (() => {
         let currentBranch = session.role === "admin" ? "ALL" : session.branch;
         let scrollCleanup = null;
         const hoverQuery = window.matchMedia("(hover: hover) and (pointer: fine)");
+        const isInteractive = session.role !== "admin" && session.role !== "accounts";
 
         function renderRow(row) {
             const tr = document.createElement("tr");
-            tr.className = "ui-table-row";
             const serialNumber = row.serial_number ?? row.serialNumber ?? "";
             const visitDate = formatDate(row.visit_date || row.visitDate || row.created_at);
             const firstFeedbackDate = formatDate(row.first_feedback_date);
@@ -103,11 +103,24 @@ const FollowUpList = (() => {
                 <td class="ui-overflow-col">${renderOverflowCell(row.first_feedback)}</td>
                 <td>${lastFeedbackDate}</td>
                 <td class="ui-overflow-col">${renderOverflowCell(row.last_feedback)}</td>
+                ${isInteractive ? `
+                    <td>
+                        <button class="ui-edit-btn" title="Edit Follow Up" type="button">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </button>
+                    </td>
+                ` : ""}
             `;
-            tr.addEventListener("click", (event) => {
-                if (event.target.closest(".ui-overflow-cell")) return;
-                showForm(row);
-            });
+            if (isInteractive) {
+                const editBtn = tr.querySelector(".ui-edit-btn");
+                editBtn?.addEventListener("click", (event) => {
+                    event.stopPropagation();
+                    showForm(row);
+                });
+            }
             return tr;
         }
 
@@ -137,6 +150,7 @@ const FollowUpList = (() => {
                                     <th>First Feedback</th>
                                     <th>Last Feedback Date</th>
                                     <th>Last Feedback</th>
+                                    ${isInteractive ? '<th>Actions</th>' : ""}
                                 </tr>
                             </thead>
                             <tbody id="follow-up-tbody"></tbody>
@@ -286,7 +300,7 @@ const FollowUpList = (() => {
                     }
 
                     if (page === 1 && rows.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="12">No records found.</td></tr>';
+                        tbody.innerHTML = `<tr><td colspan="${isInteractive ? 13 : 12}">No records found.</td></tr>`;
                     } else if (rows.length > 0) {
                         rows.forEach(row => tbody.appendChild(renderRow(row)));
                         requestAnimationFrame(syncOverflowButtons);

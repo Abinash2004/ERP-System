@@ -836,3 +836,31 @@
 .ui-password-wrapper:not([data-visible="true"]) .eye-off-icon {
     display: none;
 }
+
+/* Edit action button matching the phone button style */
+.ui-edit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--hover);
+    color: var(--dark);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    vertical-align: middle;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    padding: 0;
+}
+
+.ui-edit-btn:hover {
+    background: var(--active);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.ui-edit-btn svg {
+    width: 14px;
+    height: 14px;
+}
