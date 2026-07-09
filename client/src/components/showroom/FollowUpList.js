@@ -60,6 +60,12 @@ const FollowUpList = (() => {
         let scrollCleanup = null;
         const hoverQuery = window.matchMedia("(hover: hover) and (pointer: fine)");
         const isInteractive = session.role !== "accounts";
+        let visitDateFrom = "";
+        let visitDateTo = "";
+        let firstFeedbackDateFrom = "";
+        let firstFeedbackDateTo = "";
+        let lastFeedbackDateFrom = "";
+        let lastFeedbackDateTo = "";
 
         function renderRow(row) {
             const tr = document.createElement("tr");
@@ -194,6 +200,27 @@ const FollowUpList = (() => {
                                     </select>
                                 </div>
                             ` : ""}
+                            <div class="ui-field" style="margin-top: 16px;">
+                                <label class="ui-label">Visit Date Range</label>
+                                <div class="u-flex" style="gap: 8px;">
+                                    <input id="fup-visit-from" class="ui-input" type="date" style="flex: 1; min-width: 0;" />
+                                    <input id="fup-visit-to" class="ui-input" type="date" style="flex: 1; min-width: 0;" />
+                                </div>
+                            </div>
+                            <div class="ui-field" style="margin-top: 16px;">
+                                <label class="ui-label">First Feedback Date Range</label>
+                                <div class="u-flex" style="gap: 8px;">
+                                    <input id="fup-first-feedback-from" class="ui-input" type="date" style="flex: 1; min-width: 0;" />
+                                    <input id="fup-first-feedback-to" class="ui-input" type="date" style="flex: 1; min-width: 0;" />
+                                </div>
+                            </div>
+                            <div class="ui-field" style="margin-top: 16px;">
+                                <label class="ui-label">Last Feedback Date Range</label>
+                                <div class="u-flex" style="gap: 8px;">
+                                    <input id="fup-last-feedback-from" class="ui-input" type="date" style="flex: 1; min-width: 0;" />
+                                    <input id="fup-last-feedback-to" class="ui-input" type="date" style="flex: 1; min-width: 0;" />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -205,6 +232,12 @@ const FollowUpList = (() => {
             const overflowPopover = container.querySelector(".ui-overflow-popover");
             const statusFilter = container.querySelector("#fup-status-filter");
             const branchFilter = container.querySelector("#fup-branch-filter");
+            const visitFromFilter = container.querySelector("#fup-visit-from");
+            const visitToFilter = container.querySelector("#fup-visit-to");
+            const firstFromFilter = container.querySelector("#fup-first-feedback-from");
+            const firstToFilter = container.querySelector("#fup-first-feedback-to");
+            const lastFromFilter = container.querySelector("#fup-last-feedback-from");
+            const lastToFilter = container.querySelector("#fup-last-feedback-to");
             const statusEl = container.querySelector("#fup-status");
 
             function syncOverflowButtons() {
@@ -309,9 +342,31 @@ const FollowUpList = (() => {
                 if (wasOpen) {
                     const nextStatus = statusFilter.value;
                     const nextBranch = branchFilter ? branchFilter.value : currentBranch;
-                    if (nextStatus !== currentStatus || nextBranch !== currentBranch) {
+                    const nextVisitFrom = visitFromFilter.value;
+                    const nextVisitTo = visitToFilter.value;
+                    const nextFirstFrom = firstFromFilter.value;
+                    const nextFirstTo = firstToFilter.value;
+                    const nextLastFrom = lastFromFilter.value;
+                    const nextLastTo = lastToFilter.value;
+
+                    if (
+                        nextStatus !== currentStatus ||
+                        nextBranch !== currentBranch ||
+                        nextVisitFrom !== visitDateFrom ||
+                        nextVisitTo !== visitDateTo ||
+                        nextFirstFrom !== firstFeedbackDateFrom ||
+                        nextFirstTo !== firstFeedbackDateTo ||
+                        nextLastFrom !== lastFeedbackDateFrom ||
+                        nextLastTo !== lastFeedbackDateTo
+                    ) {
                         currentStatus = nextStatus;
                         currentBranch = nextBranch;
+                        visitDateFrom = nextVisitFrom;
+                        visitDateTo = nextVisitTo;
+                        firstFeedbackDateFrom = nextFirstFrom;
+                        firstFeedbackDateTo = nextFirstTo;
+                        lastFeedbackDateFrom = nextLastFrom;
+                        lastFeedbackDateTo = nextLastTo;
                         resetAndLoad();
                     }
                 }
@@ -346,7 +401,13 @@ const FollowUpList = (() => {
                         branch: currentBranch,
                         page,
                         limit: LIMIT,
-                        status: currentStatus
+                        status: currentStatus,
+                        visitDateFrom,
+                        visitDateTo,
+                        firstFeedbackDateFrom,
+                        firstFeedbackDateTo,
+                        lastFeedbackDateFrom,
+                        lastFeedbackDateTo
                     });
 
                     if (res.status !== 1) {
@@ -388,6 +449,12 @@ const FollowUpList = (() => {
             if (branchFilter) {
                 branchFilter.value = currentBranch;
             }
+            visitFromFilter.value = visitDateFrom;
+            visitToFilter.value = visitDateTo;
+            firstFromFilter.value = firstFeedbackDateFrom;
+            firstToFilter.value = firstFeedbackDateTo;
+            lastFromFilter.value = lastFeedbackDateFrom;
+            lastToFilter.value = lastFeedbackDateTo;
 
             const onScroll = () => {
                 if (!tableScroll || isLoading || !hasMore) return;

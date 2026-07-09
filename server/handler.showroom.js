@@ -52,7 +52,27 @@ function getFollowUpList(data) {
     const targetBranch = normalize(data.branch);
     endpoint += "&location=eq." + encodeURIComponent(targetBranch);
   }
-  if (targetStatus && targetStatus !== "ALL") endpoint += "&status=eq." + encodeURIComponent(targetStatus);
+  if (targetStatus && targetStatus !== "ALL") {
+    endpoint += "&status=eq." + encodeURIComponent(targetStatus);
+  }
+  if (data.visitDateFrom) {
+    endpoint += "&visit_date=gte." + encodeURIComponent(data.visitDateFrom);
+  }
+  if (data.visitDateTo) {
+    endpoint += "&visit_date=lte." + encodeURIComponent(data.visitDateTo + "T23:59:59.999Z");
+  }
+  if (data.firstFeedbackDateFrom) {
+    endpoint += "&first_feedback_date=gte." + encodeURIComponent(data.firstFeedbackDateFrom);
+  }
+  if (data.firstFeedbackDateTo) {
+    endpoint += "&first_feedback_date=lte." + encodeURIComponent(data.firstFeedbackDateTo + "T23:59:59.999Z");
+  }
+  if (data.lastFeedbackDateFrom) {
+    endpoint += "&last_feedback_date=gte." + encodeURIComponent(data.lastFeedbackDateFrom);
+  }
+  if (data.lastFeedbackDateTo) {
+    endpoint += "&last_feedback_date=lte." + encodeURIComponent(data.lastFeedbackDateTo + "T23:59:59.999Z");
+  }
   endpoint += "&order=visit_date.desc,serial_number.desc" + "&limit=" + data.limit + "&offset=" + offset;
 
   const response = supabaseRequest("GET", endpoint);
