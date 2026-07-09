@@ -128,10 +128,12 @@ const FollowUpList = (() => {
             container.innerHTML = `
                 <section class="ui-table-card ui-table-card--tight ui-follow-up-view">
                     ${panelHeader("Follow Up Customer List", `
-                        <div class="u-flex" style="gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
-                            ${session.role === "admin" ? '<select id="fup-branch-filter" class="ui-select ui-select--compact"><option value="ALL">All</option>' + BRANCHES.map(branch => `<option value="${branch}">${branch}</option>`).join("") + '</select>' : ""}
-                            <select id="fup-status-filter" class="ui-select ui-select--compact"><option value="ALL">All</option><option value="OPENED">Opened</option><option value="CLOSED">Closed</option><option value="PURCHASED">Purchased</option><option value="BOOKED">Booked</option></select>
-                        </div>
+                        <button id="fup-filter-btn" class="ui-button ui-button--ghost" type="button" style="padding: 8px 12px; min-height: 36px; display: inline-flex; align-items: center; gap: 6px;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px;">
+                                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                            </svg>
+                            <span>Filters</span>
+                        </button>
                     `)}
                     <div id="fup-status" class="ui-status" role="status" aria-live="polite"></div>
                     <div class="ui-table-scroll">
@@ -146,9 +148,9 @@ const FollowUpList = (() => {
                                     <th>Address</th>
                                     <th>Vehicle Details</th>
                                     <th>Follow Up Status</th>
-                                    <th>First Date</th>
+                                    <th>First Feedback Date</th>
                                     <th>First Feedback</th>
-                                    <th>Last Date</th>
+                                    <th>Last Feedback Date</th>
                                     <th>Last Feedback</th>
                                     ${isInteractive ? '<th>Actions</th>' : ""}
                                 </tr>
@@ -160,6 +162,41 @@ const FollowUpList = (() => {
                         <div class="ui-overflow-popover" role="dialog" aria-hidden="true"></div>
                     </div>
                 </section>
+                <div id="fup-filter-drawer" class="ui-drawer" aria-hidden="true">
+                    <div class="ui-drawer__overlay"></div>
+                    <div class="ui-drawer__content">
+                        <div class="ui-drawer__header">
+                            <h3 class="ui-drawer__title">Filters</h3>
+                            <button id="fup-filter-close" class="ui-drawer__close" type="button" aria-label="Close filters">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="ui-drawer__body">
+                            <div class="ui-field">
+                                <label class="ui-label">Status</label>
+                                <select id="fup-status-filter" class="ui-select">
+                                    <option value="ALL">All</option>
+                                    <option value="OPENED">Opened</option>
+                                    <option value="CLOSED">Closed</option>
+                                    <option value="PURCHASED">Purchased</option>
+                                    <option value="BOOKED">Booked</option>
+                                </select>
+                            </div>
+                            ${session.role === "admin" ? `
+                                <div class="ui-field" style="margin-top: 16px;">
+                                    <label class="ui-label">Branch</label>
+                                    <select id="fup-branch-filter" class="ui-select">
+                                        <option value="ALL">All</option>
+                                        ${BRANCHES.map(branch => `<option value="${branch}">${branch}</option>`).join("")}
+                                    </select>
+                                </div>
+                            ` : ""}
+                        </div>
+                    </div>
+                </div>
             `;
 
             const tbody = container.querySelector("#follow-up-tbody");
@@ -260,9 +297,34 @@ const FollowUpList = (() => {
                 closeAllPopovers();
             };
 
+            const filterBtn = container.querySelector("#fup-filter-btn");
+            const filterDrawer = container.querySelector("#fup-filter-drawer");
+            const filterClose = container.querySelector("#fup-filter-close");
+            const filterOverlay = container.querySelector(".ui-drawer__overlay");
+
+            const openDrawer = () => filterDrawer?.setAttribute("aria-hidden", "false");
+            const closeDrawer = () => {
+                const wasOpen = filterDrawer?.getAttribute("aria-hidden") === "false";
+                filterDrawer?.setAttribute("aria-hidden", "true");
+                if (wasOpen) {
+                    const nextStatus = statusFilter.value;
+                    const nextBranch = branchFilter ? branchFilter.value : currentBranch;
+                    if (nextStatus !== currentStatus || nextBranch !== currentBranch) {
+                        currentStatus = nextStatus;
+                        currentBranch = nextBranch;
+                        resetAndLoad();
+                    }
+                }
+            };
+
+            filterBtn?.addEventListener("click", openDrawer);
+            filterClose?.addEventListener("click", closeDrawer);
+            filterOverlay?.addEventListener("click", closeDrawer);
+
             const onKeyDown = (event) => {
                 if (event.key === "Escape") {
                     closeAllPopovers();
+                    closeDrawer();
                 }
             };
 
@@ -323,17 +385,8 @@ const FollowUpList = (() => {
             }
 
             statusFilter.value = currentStatus;
-            statusFilter.addEventListener("change", () => {
-                currentStatus = statusFilter.value;
-                resetAndLoad();
-            });
-
             if (branchFilter) {
                 branchFilter.value = currentBranch;
-                branchFilter.addEventListener("change", () => {
-                    currentBranch = branchFilter.value;
-                    resetAndLoad();
-                });
             }
 
             const onScroll = () => {
@@ -355,6 +408,9 @@ const FollowUpList = (() => {
                 container.removeEventListener("mouseover", onCellHover);
                 container.removeEventListener("mouseout", onCellLeave);
                 container.removeEventListener("keydown", onKeyDown);
+                filterBtn?.removeEventListener("click", openDrawer);
+                filterClose?.removeEventListener("click", closeDrawer);
+                filterOverlay?.removeEventListener("click", closeDrawer);
             };
 
             loadPage({ reset: true });
