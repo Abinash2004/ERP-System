@@ -16,7 +16,7 @@ const AddInvoiceForm = (() => {
                 ${field("Chassis Number", '<div id="ai-chassis-container"></div>', { required: true })}
                 ${field("Invoice Date", '<input id="ai-date" class="ui-input" type="date" required />', { required: true })}
                 ${field("Purchased Invoice Number", '<input id="ai-invoice" class="ui-input" type="text" placeholder="Enter invoice number" required />', { required: true })}
-                ${field("Gross Value Before Discount", '<input id="ai-gvbd" class="ui-input" type="number" step="0.01" placeholder="Enter gross value" required />', { required: true })}
+                ${field("Invoice Value After GST After Discount", '<input id="ai-gvbd" class="ui-input" type="number" step="0.01" placeholder="Enter Invoice Value" required />', { required: true })}
                 ${formActions("ai-submit", "ai-status")}
             `
         });
