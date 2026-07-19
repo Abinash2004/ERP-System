@@ -1,10 +1,14 @@
 import { clearSession } from "../services/session.js";
 import { FollowUpList } from "../components/showroom/FollowUpList.js";
+import { StockReport } from "../components/accounts/StockReport.js";
+import { SalesReport } from "../components/accounts/SalesReport.js";
 import { initResponsiveSidebar, renderSidebarLayout, renderWelcomeState } from "../components/ui.js";
 import { getSheetUrlForSession } from "../config/index.js";
 
 const FORMS = [
-    { label: "Follow Up List", component: FollowUpList }
+    { label: "Follow Up List", component: FollowUpList },
+    { label: "Stock Report", component: StockReport },
+    { label: "Sales Report", component: SalesReport }
 ];
 
 export function renderAdmin(session) {

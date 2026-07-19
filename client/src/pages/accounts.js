@@ -9,6 +9,8 @@ import { AddSaleAccountForm } from "../components/accounts/AddSaleAccountForm.js
 import { AddRegistrationForm } from "../components/accounts/AddRegistrationForm.js";
 import { OptionalFieldForm } from "../components/accounts/OptionalFieldForm.js";
 import { VerifyTransactionForm } from "../components/accounts/VerifyTransactionForm.js";
+import { StockReport } from "../components/accounts/StockReport.js";
+import { SalesReport } from "../components/accounts/SalesReport.js";
 import { initResponsiveSidebar, renderSidebarLayout, renderWelcomeState } from "../components/ui.js";
 import { getSheetUrlForSession, getDriveUrlForSession } from "../config/index.js";
 
@@ -22,7 +24,9 @@ const FORMS = [
     { label: "Add Sale Account Form", component: AddSaleAccountForm },
     { label: "Add Registration Form", component: AddRegistrationForm },
     { label: "Optional Field Form", component: OptionalFieldForm },
-    { label: "Verify Transaction Form", component: VerifyTransactionForm }
+    { label: "Verify Transaction Form", component: VerifyTransactionForm },
+    { label: "Stock Report", component: StockReport },
+    { label: "Sales Report", component: SalesReport }
 ];
 
 export function renderAccounts(session) {

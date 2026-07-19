@@ -456,9 +456,14 @@ const FollowUpList = (() => {
             lastFromFilter.value = lastFeedbackDateFrom;
             lastToFilter.value = lastFeedbackDateTo;
 
+            let lastScrollTop = 0;
             const onScroll = () => {
                 if (!tableScroll || isLoading || !hasMore) return;
-                const remaining = tableScroll.scrollHeight - tableScroll.scrollTop - tableScroll.clientHeight;
+                const scrollTop = tableScroll.scrollTop;
+                if (scrollTop === lastScrollTop) return;
+                lastScrollTop = scrollTop;
+
+                const remaining = tableScroll.scrollHeight - scrollTop - tableScroll.clientHeight;
                 if (remaining <= 160) {
                     page += 1;
                     loadPage();

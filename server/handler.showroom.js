@@ -125,3 +125,156 @@ function updateFollowUpForm(data) {
 
   return { status: 1, message: "follow up updated successfully" };
 }
+
+function getStockList(data) {
+  if (!data || !data.page || !data.limit) {
+    return { status: 0, message: "invalid payload" };
+  }
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const mainSheet = ss.getSheetByName("MAIN");
+
+  if (!mainSheet) {
+    return { status: 0, message: "MAIN not found" };
+  }
+
+  const lastRow = mainSheet.getLastRow();
+  if (lastRow < 2) {
+    return { status: 1, data: [], total: 0 };
+  }
+
+  const values = mainSheet.getRange(2, 1, lastRow - 1, 10).getValues();
+  const targetBranch = data.branch ? normalize(data.branch) : "ALL";
+
+  const filtered = [];
+  for (let i = 0; i < values.length; i++) {
+    const row = values[i];
+    const stockStatus = normalize(row[MAIN["STOCK STATUS"] - 1]);
+    if (stockStatus !== "STOCK") continue;
+
+    if (targetBranch !== "ALL") {
+      const currentCounter = normalize(row[MAIN["CURRENT COUNTER"] - 1]);
+      if (currentCounter !== targetBranch) continue;
+    }
+
+    const invoiceDateVal = row[MAIN["INVOICE DATE"] - 1];
+    let invoiceDateStr = "";
+    if (invoiceDateVal instanceof Date) {
+      invoiceDateStr = invoiceDateVal.toISOString();
+    } else if (invoiceDateVal) {
+      invoiceDateStr = String(invoiceDateVal);
+    }
+
+    filtered.push({
+      serialNumber: row[MAIN["SERIAL NUMBER"] - 1],
+      invoiceDate: invoiceDateStr,
+      purchasedInvoiceNumber: row[MAIN["PURCHASED INVOICE NUMBER"] - 1],
+      currentCounter: row[MAIN["CURRENT COUNTER"] - 1],
+      keyNumber: row[MAIN["KEY NUMBER"] - 1],
+      engineNumber: row[MAIN["ENGINE NUMBER"] - 1],
+      chassisNumber: row[MAIN["CHASSIS NUMBER"] - 1],
+      model: row[MAIN["MODEL"] - 1],
+      color: row[MAIN["COLOR"] - 1]
+    });
+  }
+
+  const page = parseInt(data.page, 10);
+  const limit = parseInt(data.limit, 10);
+  const offset = (page - 1) * limit;
+  const sliced = filtered.slice(offset, offset + limit);
+
+  return { status: 1, message: "success", data: sliced, total: filtered.length };
+}
+
+function getSalesList(data) {
+  if (!data || !data.page || !data.limit) {
+    return { status: 0, message: "invalid payload" };
+  }
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const mainSheet = ss.getSheetByName("MAIN");
+
+  if (!mainSheet) {
+    return { status: 0, message: "MAIN not found" };
+  }
+
+  const lastRow = mainSheet.getLastRow();
+  if (lastRow < 2) {
+    return { status: 1, data: [], total: 0 };
+  }
+
+  const values = mainSheet.getRange(2, 1, lastRow - 1, 31).getValues();
+  const targetBranch = data.branch ? normalize(data.branch) : "ALL";
+
+  const filtered = [];
+  for (let i = 0; i < values.length; i++) {
+    const row = values[i];
+    const stockStatus = normalize(row[MAIN["STOCK STATUS"] - 1]);
+    
+    if (stockStatus === "STOCK" || !stockStatus) continue;
+
+    if (targetBranch !== "ALL") {
+      const saleCounter = normalize(row[MAIN["SALE COUNTER"] - 1]);
+      const currentCounter = normalize(row[MAIN["CURRENT COUNTER"] - 1]);
+      const matchBranch = saleCounter ? saleCounter : currentCounter;
+      if (matchBranch !== targetBranch) continue;
+    }
+
+    const invoiceDateVal = row[MAIN["INVOICE DATE"] - 1];
+    let invoiceDateStr = "";
+    if (invoiceDateVal instanceof Date) {
+      invoiceDateStr = invoiceDateVal.toISOString();
+    } else if (invoiceDateVal) {
+      invoiceDateStr = String(invoiceDateVal);
+    }
+
+    const saleDateVal = row[MAIN["SALE DATE"] - 1];
+    let saleDateStr = "";
+    if (saleDateVal instanceof Date) {
+      saleDateStr = saleDateVal.toISOString();
+    } else if (saleDateVal) {
+      saleDateStr = String(saleDateVal);
+    }
+
+    filtered.push({
+      serialNumber: row[MAIN["SERIAL NUMBER"] - 1],
+      invoiceDate: invoiceDateStr,
+      purchasedInvoiceNumber: row[MAIN["PURCHASED INVOICE NUMBER"] - 1],
+      currentCounter: row[MAIN["CURRENT COUNTER"] - 1],
+      keyNumber: row[MAIN["KEY NUMBER"] - 1],
+      engineNumber: row[MAIN["ENGINE NUMBER"] - 1],
+      chassisNumber: row[MAIN["CHASSIS NUMBER"] - 1],
+      model: row[MAIN["MODEL"] - 1],
+      color: row[MAIN["COLOR"] - 1],
+      stockStatus: row[MAIN["STOCK STATUS"] - 1],
+      saleDate: saleDateStr,
+      customerOnRoadPrice: row[MAIN["CUSTOMER ON-ROAD PRICE"] - 1],
+      saleCounter: row[MAIN["SALE COUNTER"] - 1],
+      customerName: row[MAIN["CUSTOMER NAME"] - 1],
+      mobileNumber: row[MAIN["MOBILE NUMBER"] - 1],
+      alternateMobileNumber: row[MAIN["ALTERNATE MOBILE NUMBER"] - 1],
+      cashFinance: row[MAIN["CASH / FINANCE"] - 1],
+      financer: row[MAIN["FINANCER"] - 1],
+      salesPerson: row[MAIN["SALES PERSON"] - 1],
+      advancerName: row[MAIN["ADVANCER NAME"] - 1],
+      totalDp: row[MAIN["TOTAL DP"] - 1],
+      advanceAmount: row[MAIN["ADVANCE AMOUNT"] - 1],
+      receivedDp: row[MAIN["RECEIVED DP"] - 1],
+      totalReceived: row[MAIN["TOTAL RECEIVED"] - 1],
+      due: row[MAIN["DUE"] - 1],
+      anyExchange: row[MAIN["ANY EXCHANGE"] - 1],
+      exchangeModel: row[MAIN["EXCHANGE MODEL"] - 1],
+      exchangeRegisterNumber: row[MAIN["EXCHANGE REGISTER NUMBER"] - 1],
+      customerExchangeValue: row[MAIN["CUSTOMER EXCHANGE VALUE"] - 1],
+      dealerExchangeValue: row[MAIN["DEALER EXCHANGE VALUE"] - 1],
+      dealerName: row[MAIN["DEALER NAME"] - 1]
+    });
+  }
+
+  const page = parseInt(data.page, 10);
+  const limit = parseInt(data.limit, 10);
+  const offset = (page - 1) * limit;
+  const sliced = filtered.slice(offset, offset + limit);
+
+  return { status: 1, message: "success", data: sliced, total: filtered.length };
+}
