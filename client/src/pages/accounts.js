@@ -3,10 +3,10 @@ import { AddStockForm } from "../components/accounts/AddStockForm.js";
 import { AddInvoiceForm } from "../components/accounts/AddInvoiceForm.js";
 import { StockMovementForm } from "../components/accounts/StockMovementForm.js";
 import { AdvanceReceiveForm } from "../components/accounts/AdvanceReceiveForm.js";
-import { AdvanceReturnForm } from "../components/accounts/AdvanceReturnForm.js";
 import { AddSaleForm } from "../components/accounts/AddSaleForm.js";
 import { AddSaleAccountForm } from "../components/accounts/AddSaleAccountForm.js";
-import { AddRegistrationForm } from "../components/accounts/AddRegistrationForm.js";
+import { AdvanceReturnForm } from "../components/accounts/AdvanceReturnForm.js";
+import { RTOForm } from "../components/accounts/RTOForm.js";
 import { OptionalFieldForm } from "../components/accounts/OptionalFieldForm.js";
 import { VerifyTransactionForm } from "../components/accounts/VerifyTransactionForm.js";
 import { StockReport } from "../components/accounts/StockReport.js";
@@ -22,7 +22,7 @@ const FORMS = [
     { label: "Advance Return Form", component: AdvanceReturnForm },
     { label: "Add Sale Form", component: AddSaleForm },
     { label: "Add Sale Account Form", component: AddSaleAccountForm },
-    { label: "Add Registration Form", component: AddRegistrationForm },
+    { label: "RTO Form", component: RTOForm },
     { label: "Optional Field Form", component: OptionalFieldForm },
     { label: "Verify Transaction Form", component: VerifyTransactionForm },
     { label: "Stock Report", component: StockReport },

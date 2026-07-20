@@ -475,31 +475,80 @@ function addRegistrationForm(data) {
   }
 
   const chassis = normalize(data.chassis);
-  const payload = {
-    "REGISTRATION NUMBER": normalize(data.registrationNumber)
-  };
-
-  const requiredFields = [
-    chassis,
-    payload["REGISTRATION NUMBER"]
-  ];
-
-  if (requiredFields.some(v => !v)) {
-    return { status: 0, message: "some fields are missing" };
-  }
-
-  const rowIndex = getRowIndexHandler(
-    mainSheet,
-    chassis,
-    MAIN["CHASSIS NUMBER"]
-  );
+  const rowIndex = getRowIndexHandler(mainSheet, chassis, MAIN["CHASSIS NUMBER"]);
 
   if (rowIndex === -1) {
     return { status: 0, message: "chassis does not exist" };
   }
 
+  const existingRtoEntryDate = mainSheet.getRange(rowIndex, MAIN["RTO ENTRY DATE"]).getValue();
+  const existingAppNumber = mainSheet.getRange(rowIndex, MAIN["APPLICATION NUMBER"]).getValue();
+  const existingRegNumber = mainSheet.getRange(rowIndex, MAIN["REGISTRATION NUMBER"]).getValue();
+
+  const payload = {};
+
+  if (!existingRtoEntryDate && data.rtoEntryDate) {
+    payload["RTO ENTRY DATE"] = new Date(data.rtoEntryDate);
+  }
+  if (!existingAppNumber && data.applicationNumber) {
+    payload["APPLICATION NUMBER"] = normalize(data.applicationNumber);
+  }
+  if (data.rtoStatus) {
+    payload["RTO STATUS"] = normalize(data.rtoStatus);
+  }
+  if (!existingRegNumber && data.registrationNumber) {
+    payload["REGISTRATION NUMBER"] = normalize(data.registrationNumber);
+  }
+
   safeWriteRow(mainSheet, rowIndex, payload, MAIN);
-  return { status: 1, message: "registration number added successfully" };
+  return { status: 1, message: "RTO details updated successfully" };
+}
+
+function getRTODetails(data) {
+  if (!data || !data.chassis) {
+    return { status: 0, message: "invalid chassis number" };
+  }
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const mainSheet = ss.getSheetByName("MAIN");
+
+  if (!mainSheet) {
+    return { status: 0, message: "MAIN not found" };
+  }
+
+  const chassis = normalize(data.chassis);
+  const rowIndex = getRowIndexHandler(mainSheet, chassis, MAIN["CHASSIS NUMBER"]);
+
+  if (rowIndex === -1) {
+    return { status: 0, message: "chassis does not exist" };
+  }
+
+  const customerName = mainSheet.getRange(rowIndex, MAIN["CUSTOMER NAME"]).getValue();
+  const rtoEntryDateVal = mainSheet.getRange(rowIndex, MAIN["RTO ENTRY DATE"]).getValue();
+  const applicationNumber = mainSheet.getRange(rowIndex, MAIN["APPLICATION NUMBER"]).getValue();
+  const rtoStatus = mainSheet.getRange(rowIndex, MAIN["RTO STATUS"]).getValue();
+  const registrationNumber = mainSheet.getRange(rowIndex, MAIN["REGISTRATION NUMBER"]).getValue();
+
+  let rtoEntryDateStr = "";
+  if (rtoEntryDateVal instanceof Date) {
+    const year = rtoEntryDateVal.getFullYear();
+    const month = String(rtoEntryDateVal.getMonth() + 1).padStart(2, "0");
+    const day = String(rtoEntryDateVal.getDate()).padStart(2, "0");
+    rtoEntryDateStr = `${year}-${month}-${day}`;
+  } else if (rtoEntryDateVal) {
+    rtoEntryDateStr = String(rtoEntryDateVal);
+  }
+
+  return {
+    status: 1,
+    data: {
+      customerName: customerName ? String(customerName) : "",
+      rtoEntryDate: rtoEntryDateStr,
+      applicationNumber: applicationNumber ? String(applicationNumber) : "",
+      rtoStatus: rtoStatus ? String(rtoStatus) : "",
+      registrationNumber: registrationNumber ? String(registrationNumber) : ""
+    }
+  };
 }
 
 function optionalFieldForm(data) {
