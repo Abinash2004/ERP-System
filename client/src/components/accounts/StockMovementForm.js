@@ -48,7 +48,10 @@ const StockMovementForm = (() => {
             ]);
 
             if (chassisRes.status === 1) chassisDropdown.setOptions(chassisRes.data);
-            if (counterRes.status === 1) counterDropdown.setOptions(counterRes.data);
+            if (counterRes.status === 1) {
+                const filtered = (counterRes.data || []).filter(c => String(c).trim().toUpperCase() !== "BILL");
+                counterDropdown.setOptions(filtered);
+            }
 
             setStatus(statusEl);
         } catch (err) {

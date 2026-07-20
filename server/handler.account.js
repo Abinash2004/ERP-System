@@ -140,14 +140,16 @@ function addInvoiceForm(data) {
   const payload = {
     "INVOICE DATE": new Date(data.date),
     "PURCHASED INVOICE NUMBER": normalize(data.invoice),
-    "INVOICE VALUE AFTER GST AFTER DISCOUNT": normalize(data.gvbd)
+    "INVOICE VALUE AFTER GST AFTER DISCOUNT": normalize(data.gvbd),
+    "EX SHOWROOM PRICE": normalize(data.exShowroomPrice)
   };
 
   const requiredFields = [
     chassis,
     payload["INVOICE DATE"],
     payload["PURCHASED INVOICE NUMBER"],
-    payload["INVOICE VALUE AFTER GST AFTER DISCOUNT"]
+    payload["INVOICE VALUE AFTER GST AFTER DISCOUNT"],
+    payload["EX SHOWROOM PRICE"]
   ];
 
   if (requiredFields.some(v => !v)) {
