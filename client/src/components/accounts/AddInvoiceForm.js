@@ -20,6 +20,13 @@ const AddInvoiceForm = (() => {
                 ${field("Ex Showroom Price", '<input id="ai-ex-showroom" class="ui-input" type="number" step="0.01" placeholder="Enter Ex Showroom Price" required />', { required: true })}
                 ${field("Auto Invoice Price", '<input id="ai-auto-invoice" class="ui-input ui-readonly" type="number" step="0.01" placeholder="Auto calculated" readonly />')}
                 ${field("Gap Price", '<input id="ai-gap-price" class="ui-input ui-readonly" type="number" step="0.01" placeholder="Auto calculated" readonly />')}
+                ${field("YBC Name", `
+                    <select id="ai-dealer" class="ui-select" required>
+                        <option value="" disabled selected>Select YBC Name</option>
+                        <option value="ADITI">ADITI</option>
+                        <option value="PL">PL</option>
+                    </select>
+                `, { required: true })}
                 ${formActions("ai-submit", "ai-status")}
             `
         });
@@ -30,6 +37,7 @@ const AddInvoiceForm = (() => {
         const exShowroomInput = container.querySelector("#ai-ex-showroom");
         const autoInvoiceInput = container.querySelector("#ai-auto-invoice");
         const gapPriceInput = container.querySelector("#ai-gap-price");
+        const dealerSelect = container.querySelector("#ai-dealer");
         const submitButton = container.querySelector("#ai-submit");
         const statusEl = container.querySelector("#ai-status");
         const form = container.querySelector("#add-invoice-form");
@@ -80,8 +88,9 @@ const AddInvoiceForm = (() => {
             const invoice = invoiceInput.value.trim();
             const gvbd = gvbdInput.value.trim();
             const exShowroomPrice = exShowroomInput.value.trim();
+            const dealer = dealerSelect.value;
 
-            if (!chassis || !date || !invoice || !gvbd || !exShowroomPrice) {
+            if (!chassis || !date || !invoice || !gvbd || !exShowroomPrice || !dealer) {
                 setStatus(statusEl, "All fields are mandatory.", "error");
                 return;
             }
@@ -91,7 +100,8 @@ const AddInvoiceForm = (() => {
                 date,
                 invoice,
                 gvbd: parseFloat(gvbd),
-                exShowroomPrice: parseFloat(exShowroomPrice)
+                exShowroomPrice: parseFloat(exShowroomPrice),
+                dealer
             };
 
             submitButton.disabled = true;

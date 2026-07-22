@@ -89,14 +89,14 @@ function addStockForm(data) {
 
   const nextRow = getFirstEmptyRow(mainSheet, "A2:A");
   const payload = {
-    "SERIAL NUMBER": nextRow - 1,
+    "SL NO": nextRow - 1,
     "CHASSIS NUMBER": normalize(data.chassis),
     "ENGINE NUMBER": normalize(data.engine),
     "MODEL": normalize(data.model),
     "COLOR": normalize(data.color),
-    "CURRENT COUNTER": normalize(data.counter),
-    "KEY NUMBER": normalize(data.key),
-    "STOCK STATUS": "STOCK"
+    "CUR COUNTER": normalize(data.counter),
+    "KEY NO": normalize(data.key),
+    "ST STATUS": "STOCK"
   };
 
   const requiredFields = [
@@ -104,7 +104,7 @@ function addStockForm(data) {
     payload["ENGINE NUMBER"],
     payload["MODEL"],
     payload["COLOR"],
-    payload["CURRENT COUNTER"]
+    payload["CUR COUNTER"]
   ];
 
   if (requiredFields.some(v => !v)) {
@@ -138,18 +138,20 @@ function addInvoiceForm(data) {
   }
 
   const payload = {
-    "INVOICE DATE": new Date(data.date),
-    "PURCHASED INVOICE NUMBER": normalize(data.invoice),
-    "INVOICE VALUE AFTER GST AFTER DISCOUNT": normalize(data.gvbd),
-    "EX SHOWROOM PRICE": normalize(data.exShowroomPrice)
+    "INV DATE": new Date(data.date),
+    "PURCHASED INV NO": normalize(data.invoice),
+    "INV VAL": normalize(data.gvbd),
+    "EX SR PRICE": normalize(data.exShowroomPrice),
+    "DEALER": normalize(data.dealer)
   };
 
   const requiredFields = [
     chassis,
-    payload["INVOICE DATE"],
-    payload["PURCHASED INVOICE NUMBER"],
-    payload["INVOICE VALUE AFTER GST AFTER DISCOUNT"],
-    payload["EX SHOWROOM PRICE"]
+    payload["INV DATE"],
+    payload["PURCHASED INV NO"],
+    payload["INV VAL"],
+    payload["EX SR PRICE"],
+    payload["DEALER"]
   ];
 
   if (requiredFields.some(v => !v)) {
@@ -174,12 +176,12 @@ function stockMovementForm(data) {
 
   const chassis = normalize(data.chassis);
   const payload = {
-    "CURRENT COUNTER": normalize(data.counter)
+    "CUR COUNTER": normalize(data.counter)
   };
 
   const requiredFields = [
     chassis,
-    payload["CURRENT COUNTER"]
+    payload["CUR COUNTER"]
   ];
 
   if (requiredFields.some(v => !v)) {
@@ -306,14 +308,14 @@ function addSaleForm(data) {
 
   const payload = {
     "SALE COUNTER": normalize(data.saleCounter),
-    "STOCK STATUS": normalize(data.stockStatus),
+    "ST STATUS": normalize(data.stockStatus),
     "SALE DATE": new Date(data.saleDate),
     "CUSTOMER NAME": normalize(data.customerName),
     "SALES PERSON": normalize(data.salesPerson)
   };
 
-  if (payload["STOCK STATUS"] === "B2C") {
-    payload["MOBILE NUMBER"] = normalize(data.mobileNumber);
+  if (payload["ST STATUS"] === "B2C") {
+    payload["MOBILE NO"] = normalize(data.mobileNumber);
     payload["CASH / FINANCE"] = normalize(data.cashOrFinance);
     payload["FINANCER"] = normalize(data.financer);
   }
@@ -321,15 +323,15 @@ function addSaleForm(data) {
   const requiredFields = [
     chassis,
     payload["SALE COUNTER"],
-    payload["STOCK STATUS"],
+    payload["ST STATUS"],
     payload["SALE DATE"],
     payload["CUSTOMER NAME"],
     payload["SALES PERSON"]
   ];
 
-  if (payload["STOCK STATUS"] === "B2C") {
+  if (payload["ST STATUS"] === "B2C") {
     requiredFields.push(
-      payload["MOBILE NUMBER"],
+      payload["MOBILE NO"],
       payload["CASH / FINANCE"]
     );
     if (payload["CASH / FINANCE"] !== "CASH") {
@@ -341,8 +343,8 @@ function addSaleForm(data) {
     return { status: 0, message: "some fields are missing" };
   }
 
-  if (payload["STOCK STATUS"] === "B2C") {
-    payload["ALTERNATE MOBILE NUMBER"] = normalize(data.alternate_mobile_number);
+  if (payload["ST STATUS"] === "B2C") {
+    payload["ALT MOBILE NO"] = normalize(data.alternate_mobile_number);
   }
 
   const rowIndex = getRowIndexHandler(
@@ -377,51 +379,51 @@ function addSaleAccountForm(data) {
   const chassis = normalize(data.chassis);
   const anyAdvance = normalize(data.anyAdvance);
   const payload = {
-    "PRICE TAG NUMBER": normalize(data.priceTagNumber),
+    "PRC TAG NO": normalize(data.priceTagNumber),
     "TOTAL DP": normalize(data.totalDp),
     "RECEIVED DP": normalize(data.receivedDp),
-    "ANY EXCHANGE": normalize(data.anyExchange),
-    "ESTIMATED DISBURSEMENT": normalize(data.estimatedDisbursement),
-    "CUSTOMER ON-ROAD PRICE": normalize(data.customerOnRoadPrice)
+    "ANY EXC": normalize(data.anyExchange),
+    "EST DIS": normalize(data.estimatedDisbursement),
+    "ON-ROAD PRICE": normalize(data.customerOnRoadPrice)
   };
 
   if (anyAdvance === "YES") {
     payload["ADVANCER NAME"] = normalize(data.advancerName);
-    payload["ADVANCE AMOUNT"] = normalize(data.advanceAmount);
+    payload["ADV AMT"] = normalize(data.advanceAmount);
   }
 
-  if (payload["ANY EXCHANGE"] === "YES") {
+  if (payload["ANY EXC"] === "YES") {
     payload["EXCHANGE MODEL"] = normalize(data.exchangeModel);
-    payload["EXCHANGE REGISTER NUMBER"] = normalize(data.exchangeRegisterNumber);
-    payload["CUSTOMER EXCHANGE VALUE"] = normalize(data.customerExchangeValue);
+    payload["EX REG NO"] = normalize(data.exchangeRegisterNumber);
+    payload["CUS EX VAL"] = normalize(data.customerExchangeValue);
     payload["DEALER NAME"] = normalize(data.dealerName);
-    payload["DEALER EXCHANGE VALUE"] = normalize(data.dealerExchangeValue);
+    payload["DEALER EX VAL"] = normalize(data.dealerExchangeValue);
   }
 
   const requiredFields = [
     chassis,
     anyAdvance,
-    payload["PRICE TAG NUMBER"],
+    payload["PRC TAG NO"],
     payload["TOTAL DP"],
     payload["RECEIVED DP"],
-    payload["ANY EXCHANGE"],
-    payload["CUSTOMER ON-ROAD PRICE"]
+    payload["ANY EXC"],
+    payload["ON-ROAD PRICE"]
   ];
 
   if (anyAdvance === "YES") {
     requiredFields.push(
       payload["ADVANCER NAME"],
-      payload["ADVANCE AMOUNT"]
+      payload["ADV AMT"]
     );
   }
 
-  if (payload["ANY EXCHANGE"] === "YES") {
+  if (payload["ANY EXC"] === "YES") {
     requiredFields.push(
       payload["EXCHANGE MODEL"],
-      payload["EXCHANGE REGISTER NUMBER"],
-      payload["CUSTOMER EXCHANGE VALUE"],
+      payload["EX REG NO"],
+      payload["CUS EX VAL"],
       payload["DEALER NAME"],
-      payload["DEALER EXCHANGE VALUE"]
+      payload["DEALER EX VAL"]
     );
   }
 
@@ -481,23 +483,23 @@ function addRegistrationForm(data) {
     return { status: 0, message: "chassis does not exist" };
   }
 
-  const existingRtoEntryDate = mainSheet.getRange(rowIndex, MAIN["RTO ENTRY DATE"]).getValue();
-  const existingAppNumber = mainSheet.getRange(rowIndex, MAIN["APPLICATION NUMBER"]).getValue();
-  const existingRegNumber = mainSheet.getRange(rowIndex, MAIN["REGISTRATION NUMBER"]).getValue();
+  const existingRtoEntryDate = mainSheet.getRange(rowIndex, MAIN["RTO ENT DT"]).getValue();
+  const existingAppNumber = mainSheet.getRange(rowIndex, MAIN["APPLICATION  NO"]).getValue();
+  const existingRegNumber = mainSheet.getRange(rowIndex, MAIN["REG NO"]).getValue();
 
   const payload = {};
 
   if (!existingRtoEntryDate && data.rtoEntryDate) {
-    payload["RTO ENTRY DATE"] = new Date(data.rtoEntryDate);
+    payload["RTO ENT DT"] = new Date(data.rtoEntryDate);
   }
   if (!existingAppNumber && data.applicationNumber) {
-    payload["APPLICATION NUMBER"] = normalize(data.applicationNumber);
+    payload["APPLICATION  NO"] = normalize(data.applicationNumber);
   }
   if (data.rtoStatus) {
     payload["RTO STATUS"] = normalize(data.rtoStatus);
   }
   if (!existingRegNumber && data.registrationNumber) {
-    payload["REGISTRATION NUMBER"] = normalize(data.registrationNumber);
+    payload["REG NO"] = normalize(data.registrationNumber);
   }
 
   safeWriteRow(mainSheet, rowIndex, payload, MAIN);
@@ -524,10 +526,10 @@ function getRTODetails(data) {
   }
 
   const customerName = mainSheet.getRange(rowIndex, MAIN["CUSTOMER NAME"]).getValue();
-  const rtoEntryDateVal = mainSheet.getRange(rowIndex, MAIN["RTO ENTRY DATE"]).getValue();
-  const applicationNumber = mainSheet.getRange(rowIndex, MAIN["APPLICATION NUMBER"]).getValue();
+  const rtoEntryDateVal = mainSheet.getRange(rowIndex, MAIN["RTO ENT DT"]).getValue();
+  const applicationNumber = mainSheet.getRange(rowIndex, MAIN["APPLICATION  NO"]).getValue();
   const rtoStatus = mainSheet.getRange(rowIndex, MAIN["RTO STATUS"]).getValue();
-  const registrationNumber = mainSheet.getRange(rowIndex, MAIN["REGISTRATION NUMBER"]).getValue();
+  const registrationNumber = mainSheet.getRange(rowIndex, MAIN["REG NO"]).getValue();
 
   let rtoEntryDateStr = "";
   if (rtoEntryDateVal instanceof Date) {
@@ -562,21 +564,21 @@ function optionalFieldForm(data) {
     1: {
       sheet: "MAIN",
       searchCol: MAIN["CHASSIS NUMBER"],
-      field: "KEY NUMBER",
+      field: "KEY NO",
       key: "keyNumber",
       map: MAIN
     },
     2: {
       sheet: "MAIN",
       searchCol: MAIN["CHASSIS NUMBER"],
-      field: "ALTERNATE MOBILE NUMBER",
+      field: "ALT MOBILE NO",
       key: "alternateMobileNumber",
       map: MAIN
     },
     3: {
       sheet: "MAIN",
       searchCol: MAIN["CHASSIS NUMBER"],
-      field: "ESTIMATED DISBURSEMENT",
+      field: "EST DIS",
       key: "estimatedDisbursement",
       map: MAIN
     },
@@ -661,7 +663,7 @@ function verifyTransactionForm(data) {
     6: {
       sheet: "MAIN",
       searchCol: MAIN["CHASSIS NUMBER"],
-      field: "DISBURSEMENT TRANSACTION CODE",
+      field: "DISBURSEMENT TRANSACTION  CODE",
       key: "disbursementTransactionCode",
       map: MAIN
     },
