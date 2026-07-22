@@ -145,6 +145,7 @@ function getStockList(data) {
 
   const values = mainSheet.getRange(2, 1, lastRow - 1, 10).getValues();
   const targetBranch = data.branch ? normalize(data.branch) : "ALL";
+  const targetModel = data.model ? normalize(data.model) : "ALL";
 
   const filtered = [];
   for (let i = 0; i < values.length; i++) {
@@ -155,6 +156,11 @@ function getStockList(data) {
     if (targetBranch !== "ALL") {
       const currentCounter = normalize(row[MAIN["CUR COUNTER"] - 1]);
       if (currentCounter !== targetBranch) continue;
+    }
+
+    if (targetModel !== "ALL") {
+      const modelVal = normalize(row[MAIN["MODEL"] - 1]);
+      if (modelVal !== targetModel) continue;
     }
 
     const invoiceDateVal = row[MAIN["INV DATE"] - 1];

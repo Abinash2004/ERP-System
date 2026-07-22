@@ -20,6 +20,7 @@ const StockReport = (() => {
         let hasMore = true;
         let isLoading = false;
         let currentBranch = "ALL";
+        let currentModel = "ALL";
         let scrollCleanup = null;
 
         function renderRow(row) {
@@ -72,10 +73,17 @@ const StockReport = (() => {
                             </button>
                         </div>
                         <div class="ui-drawer__body">
-                            <div class="ui-field">
+                            <div class="ui-field" style="margin-bottom: var(--space-4);">
+                                <label class="ui-label" style="margin-bottom: var(--space-1); display: block;">Branch</label>
                                 <select id="stock-branch-filter" class="ui-select">
                                     <option value="ALL">All Branches</option>
                                     ${BRANCHES.map(branch => `<option value="${branch}">${branch}</option>`).join("")}
+                                </select>
+                            </div>
+                            <div class="ui-field">
+                                <label class="ui-label" style="margin-bottom: var(--space-1); display: block;">Model</label>
+                                <select id="stock-model-filter" class="ui-select">
+                                    <option value="ALL">All Models</option>
                                 </select>
                             </div>
                         </div>
@@ -86,6 +94,7 @@ const StockReport = (() => {
             const tbody = container.querySelector("#stock-tbody");
             const tableScroll = container.querySelector(".ui-table-scroll");
             const branchFilter = container.querySelector("#stock-branch-filter");
+            const modelFilter = container.querySelector("#stock-model-filter");
             const statusEl = container.querySelector("#stock-status");
             const filterBtn = container.querySelector("#stock-filter-btn");
             const filterDrawer = container.querySelector("#stock-filter-drawer");
@@ -98,8 +107,10 @@ const StockReport = (() => {
                 filterDrawer?.setAttribute("aria-hidden", "true");
                 if (wasOpen) {
                     const nextBranch = branchFilter.value;
-                    if (nextBranch !== currentBranch) {
+                    const nextModel = modelFilter.value;
+                    if (nextBranch !== currentBranch || nextModel !== currentModel) {
                         currentBranch = nextBranch;
+                        currentModel = nextModel;
                         resetAndLoad();
                     }
                 }
@@ -127,6 +138,7 @@ const StockReport = (() => {
                 try {
                     const res = await backendRequest("getStockList", {
                         branch: currentBranch,
+                        model: currentModel,
                         page,
                         limit: LIMIT
                     });
@@ -166,6 +178,7 @@ const StockReport = (() => {
             }
 
             branchFilter.value = currentBranch;
+            modelFilter.value = currentModel;
 
             let lastScrollTop = 0;
             const onScroll = () => {
@@ -190,6 +203,25 @@ const StockReport = (() => {
                 filterOverlay?.removeEventListener("click", closeDrawer);
             };
 
+            async function loadModels() {
+                try {
+                    const res = await backendRequest("getDropdown", 1);
+                    if (res.status === 1 && res.data) {
+                        modelFilter.innerHTML = '<option value="ALL">All Models</option>';
+                        res.data.forEach(model => {
+                            const opt = document.createElement("option");
+                            opt.value = model;
+                            opt.textContent = model;
+                            modelFilter.appendChild(opt);
+                        });
+                        modelFilter.value = currentModel;
+                    }
+                } catch (err) {
+                    console.error("[loadModels]", err);
+                }
+            }
+
+            loadModels();
             loadPage({ reset: true });
         }
 
