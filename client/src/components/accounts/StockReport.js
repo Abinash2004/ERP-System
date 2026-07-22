@@ -25,12 +25,7 @@ const StockReport = (() => {
         function renderRow(row) {
             const tr = document.createElement("tr");
             tr.innerHTML = `
-                <td>${row.serialNumber ?? ""}</td>
-                <td>${formatDate(row.invoiceDate)}</td>
-                <td>${row.purchasedInvoiceNumber ?? ""}</td>
                 <td>${row.currentCounter ?? ""}</td>
-                <td>${row.keyNumber ?? ""}</td>
-                <td>${row.engineNumber ?? ""}</td>
                 <td>${row.chassisNumber ?? ""}</td>
                 <td>${row.model ?? ""}</td>
                 <td>${row.color ?? ""}</td>
@@ -54,12 +49,7 @@ const StockReport = (() => {
                         <table class="ui-table" id="stock-table">
                             <thead>
                                 <tr>
-                                    <th>Serial No.</th>
-                                    <th>Invoice Date</th>
-                                    <th>Invoice Number</th>
-                                    <th>Branch / Counter</th>
-                                    <th>Key Number</th>
-                                    <th>Engine Number</th>
+                                    <th>Branch</th>
                                     <th>Chassis Number</th>
                                     <th>Model</th>
                                     <th>Color</th>
@@ -154,7 +144,7 @@ const StockReport = (() => {
                     }
 
                     if (page === 1 && rows.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="9">No stock records found.</td></tr>`;
+                        tbody.innerHTML = `<tr><td colspan="4">No stock records found.</td></tr>`;
                     } else if (rows.length > 0) {
                         rows.forEach(row => tbody.appendChild(renderRow(row)));
                     }

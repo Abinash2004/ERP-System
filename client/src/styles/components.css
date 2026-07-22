@@ -363,16 +363,22 @@
     gap: var(--space-3);
 }
 
-.ui-follow-up-view {
+.ui-follow-up-view,
+.ui-stock-report-view,
+.ui-sales-report-view {
     height: calc(100vh - 88px);
     min-height: 0;
 }
 
-.ui-follow-up-view .ui-panel-header {
+.ui-follow-up-view .ui-panel-header,
+.ui-stock-report-view .ui-panel-header,
+.ui-sales-report-view .ui-panel-header {
     flex: 0 0 auto;
 }
 
-.ui-follow-up-view .ui-table-scroll {
+.ui-follow-up-view .ui-table-scroll,
+.ui-stock-report-view .ui-table-scroll,
+.ui-sales-report-view .ui-table-scroll {
     flex: 1 1 auto;
     min-height: 0;
     max-height: none;
@@ -720,11 +726,15 @@
         padding: 24px 20px;
     }
 
-    .ui-follow-up-view {
+    .ui-follow-up-view,
+    .ui-stock-report-view,
+    .ui-sales-report-view {
         height: calc(100dvh - 96px);
     }
 
-    .ui-follow-up-view .ui-table-scroll {
+    .ui-follow-up-view .ui-table-scroll,
+    .ui-stock-report-view .ui-table-scroll,
+    .ui-sales-report-view .ui-table-scroll {
         overflow-x: auto;
         overflow-y: auto;
         min-height: 0;
@@ -734,21 +744,29 @@
         min-width: 1200px;
     }
 
-    .ui-follow-up-view .ui-panel-title {
+    .ui-follow-up-view .ui-panel-title,
+    .ui-stock-report-view .ui-panel-title,
+    .ui-sales-report-view .ui-panel-title {
         font-size: 18px;
         white-space: normal;
     }
 
-    .ui-follow-up-view .ui-panel-header {
+    .ui-follow-up-view .ui-panel-header,
+    .ui-stock-report-view .ui-panel-header,
+    .ui-sales-report-view .ui-panel-header {
         gap: 8px;
         align-items: flex-start;
     }
 
-    .ui-follow-up-view .ui-panel-header > div {
+    .ui-follow-up-view .ui-panel-header > div,
+    .ui-stock-report-view .ui-panel-header > div,
+    .ui-sales-report-view .ui-panel-header > div {
         width: 100%;
     }
 
-    .ui-follow-up-view .ui-panel-header .u-flex {
+    .ui-follow-up-view .ui-panel-header .u-flex,
+    .ui-stock-report-view .ui-panel-header .u-flex,
+    .ui-sales-report-view .ui-panel-header .u-flex {
         gap: 6px !important;
         justify-content: flex-start !important;
     }
