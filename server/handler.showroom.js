@@ -184,6 +184,12 @@ function getStockList(data) {
     });
   }
 
+  filtered.sort((a, b) => {
+    const modelA = String(a.model || "").toLowerCase();
+    const modelB = String(b.model || "").toLowerCase();
+    return modelA.localeCompare(modelB);
+  });
+
   const page = parseInt(data.page, 10);
   const limit = parseInt(data.limit, 10);
   const offset = (page - 1) * limit;
@@ -192,7 +198,7 @@ function getStockList(data) {
   return { status: 1, message: "success", data: sliced, total: filtered.length };
 }
 
-function getSalesList(data) {
+function getPendingDisbursementList(data) {
   if (!data || !data.page || !data.limit) {
     return { status: 0, message: "invalid payload" };
   }
@@ -209,29 +215,38 @@ function getSalesList(data) {
     return { status: 1, data: [], total: 0 };
   }
 
-  const values = mainSheet.getRange(2, 1, lastRow - 1, 53).getValues();
+  const values = mainSheet.getRange(2, 1, lastRow - 1, 40).getValues();
   const targetBranch = data.branch ? normalize(data.branch) : "ALL";
+  const targetFinancer = data.financer ? normalize(data.financer) : "ALL";
 
   const filtered = [];
   for (let i = 0; i < values.length; i++) {
     const row = values[i];
-    const stockStatus = normalize(row[MAIN["ST STATUS"] - 1]);
     
-    if (stockStatus === "STOCK" || !stockStatus) continue;
+    // ST STATUS must be B2C
+    const stockStatus = normalize(row[MAIN["ST STATUS"] - 1]);
+    if (stockStatus !== "B2C") continue;
 
-    if (targetBranch !== "ALL") {
-      const saleCounter = normalize(row[MAIN["SALE COUNTER"] - 1]);
-      const currentCounter = normalize(row[MAIN["CUR COUNTER"] - 1]);
-      const matchBranch = saleCounter ? saleCounter : currentCounter;
-      if (matchBranch !== targetBranch) continue;
-    }
+    // CASH / FINANCE must not be empty or "CASH"
+    const cashFinance = normalize(row[MAIN["CASH / FINANCE"] - 1]);
+    if (!cashFinance || cashFinance === "CASH") continue;
 
-    const invoiceDateVal = row[MAIN["INV DATE"] - 1];
-    let invoiceDateStr = "";
-    if (invoiceDateVal instanceof Date) {
-      invoiceDateStr = invoiceDateVal.toISOString();
-    } else if (invoiceDateVal) {
-      invoiceDateStr = String(invoiceDateVal);
+    // DIS TNC AMT must be empty
+    const disTncAmt = normalize(row[MAIN["DIS TNC AMT"] - 1]);
+    if (disTncAmt !== "") continue;
+
+    // Filter by branch
+    const saleCounter = normalize(row[MAIN["SALE COUNTER"] - 1]);
+    const currentCounter = normalize(row[MAIN["CUR COUNTER"] - 1]);
+    const matchBranch = saleCounter ? saleCounter : currentCounter;
+    if (targetBranch !== "ALL" && matchBranch !== targetBranch) continue;
+
+    // Filter by financer
+    if (targetFinancer !== "ALL") {
+      const cashFinanceColVal = normalize(row[MAIN["CASH / FINANCE"] - 1]);
+      if (cashFinanceColVal !== targetFinancer && !cashFinanceColVal.includes(targetFinancer) && !targetFinancer.includes(cashFinanceColVal)) {
+        continue;
+      }
     }
 
     const saleDateVal = row[MAIN["SALE DATE"] - 1];
@@ -243,37 +258,13 @@ function getSalesList(data) {
     }
 
     filtered.push({
-      serialNumber: row[MAIN["SL NO"] - 1],
-      invoiceDate: invoiceDateStr,
-      purchasedInvoiceNumber: row[MAIN["PURCHASED INV NO"] - 1],
-      currentCounter: row[MAIN["CUR COUNTER"] - 1],
-      keyNumber: row[MAIN["KEY NO"] - 1],
-      engineNumber: row[MAIN["ENGINE NUMBER"] - 1],
-      chassisNumber: row[MAIN["CHASSIS NUMBER"] - 1],
-      model: row[MAIN["MODEL"] - 1],
-      color: row[MAIN["COLOR"] - 1],
-      stockStatus: row[MAIN["ST STATUS"] - 1],
       saleDate: saleDateStr,
-      customerOnRoadPrice: row[MAIN["ON-ROAD PRICE"] - 1],
-      saleCounter: row[MAIN["SALE COUNTER"] - 1],
+      branch: matchBranch,
       customerName: row[MAIN["CUSTOMER NAME"] - 1],
-      mobileNumber: row[MAIN["MOBILE NO"] - 1],
-      alternateMobileNumber: row[MAIN["ALT MOBILE NO"] - 1],
       cashFinance: row[MAIN["CASH / FINANCE"] - 1],
-      financer: row[MAIN["FINANCER"] - 1],
-      salesPerson: row[MAIN["SALES PERSON"] - 1],
-      advancerName: row[MAIN["ADVANCER NAME"] - 1],
-      totalDp: row[MAIN["TOTAL DP"] - 1],
-      advanceAmount: row[MAIN["ADV AMT"] - 1],
-      receivedDp: row[MAIN["RECEIVED DP"] - 1],
-      totalReceived: row[MAIN["TOTAL RECEIVED"] - 1],
-      due: row[MAIN["DUE"] - 1],
-      anyExchange: row[MAIN["ANY EXC"] - 1],
-      exchangeModel: row[MAIN["EXCHANGE MODEL"] - 1],
-      exchangeRegisterNumber: row[MAIN["EX REG NO"] - 1],
-      customerExchangeValue: row[MAIN["CUS EX VAL"] - 1],
-      dealerExchangeValue: row[MAIN["DEALER EX VAL"] - 1],
-      dealerName: row[MAIN["DEALER NAME"] - 1]
+      financerName: row[MAIN["FINANCER"] - 1],
+      chassisNumber: row[MAIN["CHASSIS NUMBER"] - 1],
+      model: row[MAIN["MODEL"] - 1]
     });
   }
 
@@ -284,3 +275,5 @@ function getSalesList(data) {
 
   return { status: 1, message: "success", data: sliced, total: filtered.length };
 }
+
+

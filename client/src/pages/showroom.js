@@ -2,13 +2,15 @@ import { clearSession } from "../services/session.js";
 import { NewWalkInForm } from "../components/showroom/NewWalkInForm.js";
 import { FollowUpList } from "../components/showroom/FollowUpList.js";
 import { StockReport } from "../components/accounts/StockReport.js";
+import { PendingDisbursementReport } from "../components/accounts/PendingDisbursementReport.js";
 import { initResponsiveSidebar, renderSidebarLayout, renderWelcomeState } from "../components/ui.js";
 import { getDriveUrlForSession } from "../config/index.js";
 
 const FORMS = [
     { label: "New Walk In", component: NewWalkInForm },
     { label: "Customer Follow Up", component: FollowUpList },
-    { label: "Stock Report", component: StockReport }
+    { label: "Stock Report", component: StockReport },
+    { label: "Pending Disbursement Report", component: PendingDisbursementReport }
 ];
 
 export function renderShowroom(session) {
