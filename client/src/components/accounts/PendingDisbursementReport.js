@@ -2,7 +2,7 @@ import { backendRequest } from "../../api/index.js";
 import { panelHeader, setStatus } from "../ui.js";
 
 const LIMIT = 20;
-const BRANCHES = ["ASKA", "MOHANA", "SURADA"];
+const BRANCHES = ["ASKA", "MOHANA", "SURADA", "PURUSOTTAMPUR"];
 const FINANCE_COL = 5; // Column E in COLLECTION sheet is column index 5
 
 const PendingDisbursementReport = (() => {
