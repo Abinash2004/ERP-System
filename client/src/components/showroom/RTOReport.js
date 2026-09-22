@@ -1,7 +1,6 @@
 import { backendRequest } from "../../api/index.js";
+import { LIMIT } from "../../constants.js";
 import { panelHeader, setStatus } from "../ui.js";
-
-const LIMIT = 20;
 
 const RTOReport = (() => {
     function formatDate(value) {

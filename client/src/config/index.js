@@ -27,8 +27,10 @@ const DRIVE_URLS_BY_BRANCH = {
     PURUSOTTAMPUR: PURUSOTTAMPUR_DRIVE_URL
 };
 
+import { ROLES } from "../constants.js";
+
 export function getSheetUrlForSession(session = {}) {
-    if (session.role === "accounts" || session.role === "admin") {
+    if (session.role === ROLES.ACCOUNTS || session.role === ROLES.ADMIN) {
         return ACCOUNT_SHEET_URL;
     }
 
@@ -36,7 +38,7 @@ export function getSheetUrlForSession(session = {}) {
 }
 
 export function getDriveUrlForSession(session = {}) {
-    if (session.role === "accounts") {
+    if (session.role === ROLES.ACCOUNTS) {
         return ACCOUNT_DRIVE_URL;
     }
 

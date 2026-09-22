@@ -1,6 +1,7 @@
 import { backendRequest } from "../api/index.js";
 import { setSession } from "../services/session.js";
 import { renderLoginLayout, setStatus, setupFormValidation } from "../components/ui.js";
+import { ROLES, ROUTES } from "../constants.js";
 
 export function renderLogin() {
     document.getElementById("app").innerHTML = renderLoginLayout();
@@ -46,12 +47,12 @@ export function renderLogin() {
             }
 
             await setSession(role, branch);
-            if (role === "accounts") {
-                navigateTo("/accounts");
-            } else if (role === "admin") {
-                navigateTo("/admin");
+            if (role === ROLES.ACCOUNTS) {
+                navigateTo(ROUTES.ACCOUNTS);
+            } else if (role === ROLES.ADMIN) {
+                navigateTo(ROUTES.ADMIN);
             } else {
-                navigateTo("/showroom");
+                navigateTo(ROUTES.SHOWROOM);
             }
         } catch {
             setStatus(errorEl, "Server unreachable. Try again.", "error");

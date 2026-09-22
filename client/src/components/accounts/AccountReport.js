@@ -1,8 +1,7 @@
 import { backendRequest } from "../../api/index.js";
+import { LIMIT } from "../../constants.js";
 import { panelHeader, setStatus } from "../ui.js";
 import { AdminVerificationForm } from "./AdminVerificationForm.js";
-
-const LIMIT = 20;
 
 const AccountReport = (() => {
     function formatDate(value) {
