@@ -422,12 +422,16 @@
 }
 
 .ui-table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
     background: var(--hover);
     color: var(--text-secondary);
     font-size: 12px;
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
+    box-shadow: 0 1px 0 var(--border);
 }
 
 .ui-table th:last-child,
