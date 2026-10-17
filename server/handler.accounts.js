@@ -638,7 +638,7 @@ function getDPCallPendingList() {
     return { status: 1, data: [] };
   }
 
-  const values = mainSheet.getRange(2, 1, lastRow - 1, 26).getValues();
+  const values = mainSheet.getRange(2, 1, lastRow - 1, 27).getValues();
   const list = [];
 
   for (let i = 0; i < values.length; i++) {
@@ -690,3 +690,25 @@ function submitDPCallVerification(data) {
   mainSheet.getRange(rowIndex, MAIN["CALL DP"]).setValue(data.dpAmount);
   return { status: 1, message: "DP Call verified successfully with DP Amount " + data.dpAmount };
 }
+
+function settleDueForm(data) {
+  if (!data || !data.chassis) {
+    return { status: 0, message: "chassis is required" };
+  }
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const mainSheet = ss.getSheetByName("MAIN");
+
+  if (!mainSheet) {
+    return { status: 0, message: "MAIN not found" };
+  }
+
+  const rowIndex = getRowIndexHandler(mainSheet, data.chassis, MAIN["CHASSIS NUMBER"]);
+  if (rowIndex === -1) {
+    return { status: 0, message: "Chassis not found in sheet" };
+  }
+
+  mainSheet.getRange(rowIndex, MAIN["DUE_STATUS"]).setValue("PAID");
+  return { status: 1, message: "Due marked as paid successfully" };
+}
+

@@ -427,20 +427,26 @@ function getDueReportList(data) {
     return { status: 1, data: [], total: 0 };
   }
 
-  const values = mainSheet.getRange(2, 1, lastRow - 1, 24).getValues();
+  const values = mainSheet.getRange(2, 1, lastRow - 1, 25).getValues();
   const targetBranch = data.branch ? normalize(data.branch) : "ALL";
+  const targetStatus = data.dueStatus ? normalize(data.dueStatus) : "UNPAID";
 
   const filtered = [];
   for (let i = 0; i < values.length; i++) {
     const row = values[i];
     
-    // DUE must be non-empty and not 0
     const dueVal = row[MAIN["DUE"] - 1];
     if (dueVal === "" || dueVal === undefined || dueVal === null) continue;
     const dueNum = parseFloat(dueVal);
     if (isNaN(dueNum) || dueNum === 0) continue;
 
-    // Filter by branch
+    const rawStatus = normalize(row[MAIN["DUE_STATUS"] - 1]);
+    const isPaid = rawStatus === "PAID";
+    const statusText = isPaid ? "PAID" : "UNPAID";
+
+    if (targetStatus === "UNPAID" && isPaid) continue;
+    if (targetStatus === "PAID" && !isPaid) continue;
+
     const saleCounter = normalize(row[MAIN["SALE COUNTER"] - 1]);
     const currentCounter = normalize(row[MAIN["CUR COUNTER"] - 1]);
     const matchBranch = saleCounter ? saleCounter : currentCounter;
@@ -455,17 +461,18 @@ function getDueReportList(data) {
     }
 
     filtered.push({
+      chassisNumber: row[MAIN["CHASSIS NUMBER"] - 1],
       saleDate: saleDateStr,
       customerName: row[MAIN["CUSTOMER NAME"] - 1],
       mobileNumber: row[MAIN["MOBILE NO"] - 1],
       due: dueVal,
+      dueStatus: statusText,
       model: row[MAIN["MODEL"] - 1],
       color: row[MAIN["COLOR"] - 1],
       branch: matchBranch
     });
   }
 
-  // Sort by saleDate ascending (old to new)
   filtered.sort((a, b) => {
     const dateA = a.saleDate ? new Date(a.saleDate).getTime() : 0;
     const dateB = b.saleDate ? new Date(b.saleDate).getTime() : 0;
@@ -497,7 +504,7 @@ function getPendingDPVerificationList(data) {
     return { status: 1, data: [], total: 0 };
   }
 
-  const values = mainSheet.getRange(2, 1, lastRow - 1, 26).getValues();
+  const values = mainSheet.getRange(2, 1, lastRow - 1, 27).getValues();
   const targetBranch = data.branch ? normalize(data.branch) : "ALL";
 
   const filtered = [];

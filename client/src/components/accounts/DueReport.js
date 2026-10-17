@@ -20,10 +20,14 @@ const DueReport = (() => {
 
         const isShowroom = session.role === "showroom" || (!["admin", "account"].includes(session.role) && session.branch);
         let currentBranch = isShowroom ? session.branch : "ALL";
+        let currentStatus = "UNPAID";
         let scrollCleanup = null;
+        let statusEl = null;
+        let resetAndLoad = null;
 
         function renderRow(row) {
             const tr = document.createElement("tr");
+            const isPaid = row.dueStatus === "PAID";
             tr.innerHTML = `
                 <td>${formatDate(row.saleDate)}</td>
                 <td>${row.customerName ?? ""}</td>
@@ -43,24 +47,64 @@ const DueReport = (() => {
                     </div>
                 </td>
                 <td>${row.due ?? ""}</td>
+                <td>
+                    <span class="ui-follow-status ${isPaid ? "ui-follow-status--success" : "ui-follow-status--danger"}">
+                        ${row.dueStatus}
+                    </span>
+                </td>
                 <td>${row.model ?? ""}</td>
                 <td>${row.color ?? ""}</td>
                 ${!isShowroom ? `<td>${row.branch ?? ""}</td>` : ""}
+                <td>
+                    ${!isPaid && row.chassisNumber ? `
+                        <button class="ui-phone-btn due-mark-paid-btn" type="button" title="Mark as Paid" data-chassis="${row.chassisNumber}">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#166534" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </button>
+                    ` : ""}
+                </td>
             `;
+
+            const markPaidBtn = tr.querySelector(".due-mark-paid-btn");
+            if (markPaidBtn) {
+                markPaidBtn.addEventListener("click", async () => {
+                    const confirmAction = window.confirm(`Are you sure you want to mark due as Paid for chassis: ${row.chassisNumber}?`);
+                    if (!confirmAction) return;
+
+                    markPaidBtn.disabled = true;
+                    setStatus(statusEl, "Updating due status...", "info", true);
+
+                    try {
+                        const res = await backendRequest("settleDueForm", { chassis: row.chassisNumber });
+                        if (res.status === 1) {
+                            setStatus(statusEl, "Due marked as paid successfully.", "success");
+                            resetAndLoad();
+                        } else {
+                            setStatus(statusEl, res.message || "Failed to mark as paid.", "error");
+                            markPaidBtn.disabled = false;
+                        }
+                    } catch (err) {
+                        setStatus(statusEl, "Error updating due status.", "error");
+                        markPaidBtn.disabled = false;
+                    }
+                });
+            }
+
             return tr;
         }
 
         function showList() {
             container.innerHTML = `
                 <section class="ui-table-card ui-table-card--tight ui-sales-report-view">
-                    ${panelHeader("Due Report", !isShowroom ? `
+                    ${panelHeader("Due Report", `
                         <button id="due-filter-btn" class="ui-button ui-button--ghost" type="button" style="padding: 8px 12px; min-height: 36px; display: inline-flex; align-items: center; gap: 6px;">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px;">
                                 <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                             </svg>
                             <span>Filters</span>
                         </button>
-                    ` : "")}
+                    `)}
                     <div id="due-status" class="ui-status" role="status" aria-live="polite"></div>
                     <div class="ui-table-scroll">
                         <table class="ui-table" id="due-table">
@@ -70,16 +114,17 @@ const DueReport = (() => {
                                     <th>Customer Name</th>
                                     <th>Mobile Number</th>
                                     <th>Due</th>
+                                    <th>Due Status</th>
                                     <th>Model</th>
                                     <th>Color</th>
                                     ${!isShowroom ? `<th>Branch</th>` : ""}
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody id="due-tbody"></tbody>
                         </table>
                     </div>
                 </section>
-                ${!isShowroom ? `
                 <div id="due-filter-drawer" class="ui-drawer" aria-hidden="true">
                     <div class="ui-drawer__overlay"></div>
                     <div class="ui-drawer__content">
@@ -93,23 +138,33 @@ const DueReport = (() => {
                             </button>
                         </div>
                         <div class="ui-drawer__body">
-                            <div class="ui-field">
+                            ${!isShowroom ? `
+                            <div class="ui-field" style="margin-bottom: var(--space-4);">
                                 <label class="ui-label" style="margin-bottom: var(--space-1); display: block;">Branch</label>
                                 <select id="due-branch-filter" class="ui-select">
                                     <option value="ALL">All Branches</option>
                                     ${BRANCHES.map(branch => `<option value="${branch}">${branch}</option>`).join("")}
                                 </select>
                             </div>
+                            ` : ""}
+                            <div class="ui-field">
+                                <label class="ui-label" style="margin-bottom: var(--space-1); display: block;">Due Status</label>
+                                <select id="due-status-filter" class="ui-select">
+                                    <option value="UNPAID">Unpaid</option>
+                                    <option value="PAID">Paid</option>
+                                    <option value="BOTH">Both</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
-                ` : ""}
             `;
 
             const tbody = container.querySelector("#due-tbody");
             const tableScroll = container.querySelector(".ui-table-scroll");
             const branchFilter = container.querySelector("#due-branch-filter");
-            const statusEl = container.querySelector("#due-status");
+            const statusFilter = container.querySelector("#due-status-filter");
+            statusEl = container.querySelector("#due-status");
             const filterBtn = container.querySelector("#due-filter-btn");
             const filterDrawer = container.querySelector("#due-filter-drawer");
             const filterClose = container.querySelector("#due-filter-close");
@@ -121,8 +176,10 @@ const DueReport = (() => {
                 filterDrawer?.setAttribute("aria-hidden", "true");
                 if (wasOpen) {
                     const nextBranch = branchFilter ? branchFilter.value : currentBranch;
-                    if (nextBranch !== currentBranch) {
+                    const nextStatus = statusFilter ? statusFilter.value : currentStatus;
+                    if (nextBranch !== currentBranch || nextStatus !== currentStatus) {
                         currentBranch = nextBranch;
+                        currentStatus = nextStatus;
                         resetAndLoad();
                     }
                 }
@@ -150,6 +207,7 @@ const DueReport = (() => {
                 try {
                     const res = await backendRequest("getDueReportList", {
                         branch: currentBranch,
+                        dueStatus: currentStatus,
                         page,
                         limit: LIMIT
                     });
@@ -166,7 +224,7 @@ const DueReport = (() => {
                         tbody.innerHTML = "";
                     }
 
-                    const totalCols = isShowroom ? 6 : 7;
+                    const totalCols = isShowroom ? 8 : 9;
                     if (page === 1 && rows.length === 0) {
                         tbody.innerHTML = `<tr><td colspan="${totalCols}">No due records found.</td></tr>`;
                     } else if (rows.length > 0) {
@@ -175,23 +233,21 @@ const DueReport = (() => {
 
                     setStatus(statusEl);
                 } catch (err) {
-                    console.error("[getDueReportList]", err);
                     setStatus(statusEl, "Unable to load records.", "error");
                 } finally {
                     isLoading = false;
                 }
             }
 
-            function resetAndLoad() {
+            resetAndLoad = function() {
                 page = 1;
                 hasMore = true;
                 tbody.innerHTML = "";
                 loadPage({ reset: true });
-            }
+            };
 
-            if (branchFilter) {
-                branchFilter.value = currentBranch;
-            }
+            if (branchFilter) branchFilter.value = currentBranch;
+            if (statusFilter) statusFilter.value = currentStatus;
 
             let lastScrollTop = 0;
             const onScroll = () => {
