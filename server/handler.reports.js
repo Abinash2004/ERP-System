@@ -87,7 +87,7 @@ function getPendingDisbursementList(data) {
     return { status: 1, data: [], total: 0 };
   }
 
-  const values = mainSheet.getRange(2, 1, lastRow - 1, 40).getValues();
+  const values = mainSheet.getRange(2, 1, lastRow - 1, 41).getValues();
   const targetBranch = data.branch ? normalize(data.branch) : "ALL";
   const targetFinancer = data.financer ? normalize(data.financer) : "ALL";
 
@@ -361,7 +361,7 @@ function getRTOReportList(data) {
     return { status: 1, data: [], total: 0 };
   }
 
-  const values = mainSheet.getRange(2, 1, lastRow - 1, 45).getValues();
+  const values = mainSheet.getRange(2, 1, lastRow - 1, 46).getValues();
   const targetBranch = data.branch ? normalize(data.branch) : "ALL";
 
   const filtered = [];
