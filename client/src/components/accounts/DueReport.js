@@ -18,6 +18,7 @@ const DueReport = (() => {
         let hasMore = true;
         let isLoading = false;
 
+        const isAdmin = session.role === "admin";
         const isShowroom = session.role === "showroom" || (!["admin", "account"].includes(session.role) && session.branch);
         let currentBranch = isShowroom ? session.branch : "ALL";
         let currentStatus = "UNPAID";
@@ -55,6 +56,7 @@ const DueReport = (() => {
                 <td>${row.model ?? ""}</td>
                 <td>${row.color ?? ""}</td>
                 ${!isShowroom ? `<td>${row.branch ?? ""}</td>` : ""}
+                ${isAdmin ? `
                 <td>
                     ${!isPaid && row.chassisNumber ? `
                         <button class="ui-phone-btn due-mark-paid-btn" type="button" title="Mark as Paid" data-chassis="${row.chassisNumber}">
@@ -64,6 +66,7 @@ const DueReport = (() => {
                         </button>
                     ` : ""}
                 </td>
+                ` : ""}
             `;
 
             const markPaidBtn = tr.querySelector(".due-mark-paid-btn");
@@ -118,7 +121,7 @@ const DueReport = (() => {
                                     <th>Model</th>
                                     <th>Color</th>
                                     ${!isShowroom ? `<th>Branch</th>` : ""}
-                                    <th>Action</th>
+                                    ${isAdmin ? `<th>Action</th>` : ""}
                                 </tr>
                             </thead>
                             <tbody id="due-tbody"></tbody>
@@ -224,7 +227,9 @@ const DueReport = (() => {
                         tbody.innerHTML = "";
                     }
 
-                    const totalCols = isShowroom ? 8 : 9;
+                    let totalCols = 7;
+                    if (!isShowroom) totalCols += 1;
+                    if (isAdmin) totalCols += 1;
                     if (page === 1 && rows.length === 0) {
                         tbody.innerHTML = `<tr><td colspan="${totalCols}">No due records found.</td></tr>`;
                     } else if (rows.length > 0) {
